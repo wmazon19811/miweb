@@ -1,0 +1,1451 @@
+
+CREATE TABLE "dbo"."tbl_unidad_formulacion" (
+	"coduni" VARCHAR(15) NOT NULL,
+	"descripcion" VARCHAR(100) NULL,
+	"formular" VARCHAR(50) NULL,
+	"codemp" VARCHAR(5) NOT NULL,
+	PRIMARY KEY ( "coduni" ASC )
+) IN "system";
+
+CREATE TABLE "dbo"."tbl_formulas_proceso" (
+	"codproceso" VARCHAR(15) NOT NULL,
+	"codprocesamiento" VARCHAR(15) NOT NULL,
+	"codart" VARCHAR(60) NOT NULL,
+	"codorden" VARCHAR(7) NOT NULL,
+	"r_b" DECIMAL(15,4) NULL,
+	"cantid_agua" DECIMAL(15,4) NULL,
+	"temperatura_p" DECIMAL(15,4) NULL,
+	"tiempo_p" DECIMAL(15,4) NULL,
+	"porcentaje" DECIMAL(15,5) NULL,
+	"temperatura_f" DECIMAL(15,4) NULL,
+	"tiempo_f" DECIMAL(15,4) NULL,
+	"descripcion_proceso" VARCHAR(100) NULL,
+	"descripcion_procesamiento" VARCHAR(100) NULL,
+	"descripcion_articulo" VARCHAR(100) NULL,
+	"medida_egreso" VARCHAR(5) NULL,
+	"codemp" VARCHAR(5) NOT NULL,
+	"cantid_enjuague" DECIMAL(15,0) NULL,
+	"orden_proced" VARCHAR(50) NULL,
+	PRIMARY KEY ( "codproceso" ASC, "codorden" ASC, "codemp" ASC )
+) IN "system";
+
+
+
+
+
+CREATE TABLE "dbo"."tbl_clientes_orden_produccion" (
+	"codemp" VARCHAR(5) NOT NULL,
+	"numord" VARCHAR(8) NOT NULL,
+	"codcli" VARCHAR(10) NOT NULL,
+	"nomcli" VARCHAR(73) NULL,
+	"numprendas" DECIMAL(15,4) NULL,
+	PRIMARY KEY ( "codemp" ASC, "numord" ASC, "codcli" ASC )
+) IN "system";
+
+CREATE TABLE "dbo"."tbl_ord_prod_formulacion" (
+	"codemp" VARCHAR(5) NOT NULL,
+	"numord" VARCHAR(10) NOT NULL,
+	"fecord" "datetime" NULL,
+	"codproceso" VARCHAR(18) NOT NULL,
+	"descripcion" VARCHAR(50) NULL,
+	"cantid_kilos" DECIMAL(15,4) NULL,
+	"maquina" VARCHAR(10) NULL,
+	"comentario" VARCHAR(100) NULL,
+	"codcli" VARCHAR(10) NOT NULL,
+	"nomcli" VARCHAR(100) NULL,
+	"rucced" VARCHAR(15) NULL,
+	"numprendas" DECIMAL(15,4) NULL,
+	"numingreso" VARCHAR(25) NULL,
+	"descargado" VARCHAR(2) NULL,
+	"totiva" DECIMAL(15,4) NULL,
+	"excen" DECIMAL(15,4) NULL,
+	"totfac" DECIMAL(15,4) NULL,
+	"numtandas" INTEGER NULL,
+	"reproceso" VARCHAR(1) NULL,
+	"basea" DECIMAL(15,4) NULL,
+	PRIMARY KEY ( "codemp" ASC, "numord" ASC )
+) IN "system";
+
+
+
+CREATE TABLE "dbo"."tbl_detalle_ord_prod_fumulacion" (
+	"codproceso" VARCHAR(15) NOT NULL,
+	"codprocesamiento" VARCHAR(15) NOT NULL,
+	"codart" VARCHAR(60) NOT NULL,
+	"codorden" VARCHAR(7) NOT NULL,
+	"r_b" DECIMAL(15,4) NULL,
+	"cantid_agua" DECIMAL(15,4) NULL,
+	"temperatura_p" DECIMAL(15,4) NULL,
+	"tiempo_p" DECIMAL(15,4) NULL,
+	"porcentaje" DECIMAL(15,5) NULL,
+	"temperatura_f" DECIMAL(15,4) NULL,
+	"tiempo_f" DECIMAL(15,4) NULL,
+	"descripcion_proceso" VARCHAR(100) NULL,
+	"descripcion_procesamiento" VARCHAR(100) NULL,
+	"descripcion_articulo" VARCHAR(100) NULL,
+	"medida_egreso" VARCHAR(5) NULL,
+	"codemp" VARCHAR(5) NOT NULL,
+	"numord" VARCHAR(10) NOT NULL,
+	"cantid_resul" DECIMAL(15,5) NULL,
+	"costo_resul" DECIMAL(15,4) NULL,
+	"fecord" "datetime" NULL,
+	"cantid_enjuague" DECIMAL(15,4) NULL,
+	"costo_unitario" DECIMAL(15,4) NULL,
+	"item" NUMERIC(20,0) NOT NULL,
+	"cantid_egr" DECIMAL(15,5) NULL,
+	"codcla" VARCHAR(12) NULL,
+	"codcolor" VARCHAR(12) NULL,
+	"codund" VARCHAR(5) NULL,
+	"codiva" VARCHAR(3) NULL,
+	"orden_proced" VARCHAR(50) NULL,
+	"porceiva" DECIMAL(5,2) NULL,
+	"codivasri" VARCHAR(3) NULL,
+	PRIMARY KEY ( "codemp" ASC, "item" ASC, "numord" ASC )
+) IN "system";
+
+
+
+
+CREATE TABLE "dbo"."tbl_procedimiento_formulacion" (
+	"codpro" VARCHAR(10) NOT NULL,
+	"descripcion" VARCHAR(100) NULL,
+	"relacion_bano" DECIMAL(15,4) NULL,
+	"cantid_agua" DECIMAL(15,4) NULL,
+	"temperatura" DECIMAL(15,4) NULL,
+	"tiempo" DECIMAL(15,4) NULL,
+	"activo" VARCHAR(3) NULL,
+	"codemp" VARCHAR(5) NULL,
+	PRIMARY KEY ( "codpro" ASC )
+) IN "system";
+
+CREATE TABLE "dbo"."tbl_procesos_formulacion" (
+	"codpro" VARCHAR(15) NOT NULL,
+	"descripcion" VARCHAR(100) NULL,
+	"activo" VARCHAR(1) NULL,
+	"codemp" VARCHAR(5) NOT NULL,
+	PRIMARY KEY ( "codpro" ASC )
+) IN "system";
+
+CREATE TABLE "dbo"."tbl_cargar_agua_sanblas" (
+	"codemp" VARCHAR(5) NOT NULL,
+	"codart" VARCHAR(25) NOT NULL,
+	"numord" VARCHAR(16) NOT NULL,
+	"valor" DECIMAL(15,4) NULL,
+	PRIMARY KEY ( "codemp" ASC, "codart" ASC, "numord" ASC )
+) IN "system";
+
+CREATE PROCEDURE "dbo"."sp_orden_produccion_formulacion_rep"( 
+@as_codemp varchar(2),
+@as_numord varchar(10)
+)
+AS
+BEGIN
+SELECT emp.nomemp,emp.dir01,emp.tel01,ord.numord,ord.fecord,ord.codproceso,ord.descripcion,ord.cantid_kilos,ord.maquina,ord.numprendas,ord.numingreso,ord.comentario,
+det.codprocesamiento,det.descripcion_procesamiento,det.codart,det.descripcion_articulo,det.codorden,det.r_b,det.cantid_agua,det.temperatura_p,det.tiempo_p,det.porcentaje,
+det.medida_egreso,det.cantid_enjuague,det.cantid_resul,ord.codcli,ord.nomcli
+FROM empresa emp,tbl_ord_prod_formulacion ord,tbl_detalle_ord_prod_fumulacion det
+where emp.codemp=ord.codemp and ord.codemp=det.codemp and ord.numord=det.numord and
+emp.codemp=@as_codemp and
+ord.numord=@as_numord
+order by det.codorden asc
+END;
+
+CREATE PROCEDURE "dbo"."sp_orden_produccion_formulacion_rep1"( 
+@as_codemp varchar(2),
+@as_numord varchar(10)
+)
+AS
+BEGIN
+SELECT emp.nomemp,emp.dir01,emp.tel01,ord.numord,ord.fecord,ord.codproceso,ord.descripcion,ord.cantid_kilos,ord.maquina,ord.numprendas,ord.numingreso,ord.comentario,
+det.codprocesamiento,det.descripcion_procesamiento,det.codart,det.descripcion_articulo,substring(det.codorden,1,2),det.r_b,det.cantid_agua,det.temperatura_p,det.tiempo_p,det.porcentaje,
+det.medida_egreso,det.cantid_enjuague,det.cantid_resul,ord.codcli,ord.nomcli
+FROM empresa emp,tbl_ord_prod_formulacion ord,tbl_detalle_ord_prod_fumulacion det
+where emp.codemp=ord.codemp and ord.codemp=det.codemp and ord.numord=det.numord and
+emp.codemp=@as_codemp and
+ord.numord=@as_numord
+order by det.codorden asc
+END;
+
+
+create PROCEDURE "dbo"."sp_articulos_por_procedimiento"
+( 
+@as_codemp varchar(2),
+@as_nomcomercial varchar(100),
+@as_fecdesde varchar(10),
+@as_fechasta varchar (10),
+@as_codpro  varchar(20),
+@as_codart  varchar(20),
+@as_codcla  varchar(20),
+@as_iden varchar(5),
+@as_descripcion varchar(100)
+)
+AS
+BEGIN
+if @as_iden='T'
+select p.codpro,p.descripcion,a.codart,a.nomart,sum(e.cantid_kilos),sum(e.numprendas),
+sum(d.cantid_resul) from tbl_ord_prod_formulacion e, tbl_detalle_ord_prod_fumulacion d,tbl_procedimiento_formulacion p, articulos a
+where   e.codemp=d.codemp and e.numord=d.numord and
+        d.codemp=p.codemp and d.codprocesamiento=p.codpro and
+        d.codemp=a.codemp and d.codart=a.codart and e.codemp=@as_codemp and
+	(e.fecord>=convert(date,@as_fecdesde,103) and e.fecord<=convert(date, @as_fechasta, 103))
+group by p.codpro,p.descripcion,a.codart,a.nomart
+order by p.codpro,a.codart asc
+
+
+if @as_iden='ART'
+select p.codpro,p.descripcion,a.codart,a.nomart,sum(e.cantid_kilos),sum(e.numprendas),
+sum(d.cantid_resul) from tbl_ord_prod_formulacion e, tbl_detalle_ord_prod_fumulacion d,tbl_procedimiento_formulacion p, articulos a
+where   e.codemp=d.codemp and e.numord=d.numord and
+        d.codemp=p.codemp and d.codprocesamiento=p.codpro and
+        d.codemp=a.codemp and d.codart=a.codart and e.codemp=@as_codemp and
+	(e.fecord>=convert(date,@as_fecdesde,103) and e.fecord<=convert(date, @as_fechasta, 103))and a.codart=@as_codart
+group by p.codpro,p.descripcion,a.codart,a.nomart
+order by p.codpro,a.codart asc
+
+if @as_iden='CLA'
+select p.codpro,p.descripcion,a.codart,a.nomart,sum(e.cantid_kilos),sum(e.numprendas),
+sum(d.cantid_resul) from tbl_ord_prod_formulacion e, tbl_detalle_ord_prod_fumulacion d,tbl_procedimiento_formulacion p, articulos a
+where   e.codemp=d.codemp and e.numord=d.numord and
+        d.codemp=p.codemp and d.codprocesamiento=p.codpro and
+        d.codemp=a.codemp and d.codart=a.codart and e.codemp=@as_codemp and
+	(e.fecord>=convert(date,@as_fecdesde,103) and e.fecord<=convert(date, @as_fechasta, 103))and a.codcla=@as_codcla
+group by p.codpro,p.descripcion,a.codart,a.nomart
+order by p.codpro,a.codart asc
+
+
+if @as_iden='PRO'
+select p.codpro,p.descripcion,a.codart,a.nomart,sum(e.cantid_kilos),sum(e.numprendas),
+sum(d.cantid_resul) from tbl_ord_prod_formulacion e, tbl_detalle_ord_prod_fumulacion d,tbl_procedimiento_formulacion p, articulos a
+where   e.codemp=d.codemp and e.numord=d.numord and
+        d.codemp=p.codemp and d.codprocesamiento=p.codpro and
+        d.codemp=a.codemp and d.codart=a.codart and e.codemp=@as_codemp and
+	(e.fecord>=convert(date,@as_fecdesde,103) and e.fecord<=convert(date, @as_fechasta, 103))and p.codpro=@as_codpro
+group by p.codpro,p.descripcion,a.codart,a.nomart
+order by p.codpro,a.codart asc
+
+end;
+
+
+CREATE TABLE "dbo"."tbl_seted_controlados" (
+	"codemp" VARCHAR(5) NOT NULL,
+	"quim01" VARCHAR(14) NULL,
+	"quim02" VARCHAR(14) NULL,
+	"quim03" VARCHAR(14) NULL,
+	"quim04" VARCHAR(14) NULL,
+	"quim05" VARCHAR(14) NULL,
+	PRIMARY KEY ( "codemp" ASC )
+) IN "system";
+
+CREATE TABLE "dbo"."tbl_seted_procesos_rep" (
+	"codemp" VARCHAR(5) NOT NULL,
+	"codpro" VARCHAR(15) NULL,
+	"descripcion" VARCHAR(45) NULL,
+	"fecord" "datetime" NULL,
+	"numord" VARCHAR(11) NOT NULL,
+	"codcli" VARCHAR(15) NULL,
+	"nomcli" VARCHAR(74) NULL,
+	"pesoprendas" DECIMAL(15,4) NULL,
+	"numprendas" DECIMAL(15,4) NULL,
+	"quim01" DECIMAL(15,4) NULL,
+	"quim02" DECIMAL(15,4) NULL,
+	"quim03" DECIMAL(15,4) NULL,
+	"quim04" DECIMAL(15,4) NULL,
+	"numingreso" VARCHAR(50) NULL,
+	"quim05" DECIMAL(15,4) NULL,
+	PRIMARY KEY ( "codemp" ASC, "numord" ASC )
+) IN "system";
+
+
+
+create PROCEDURE "dbo"."sp_seted_procesos"
+( 
+@as_codemp varchar(2),
+@as_nomcomercial varchar(100),
+@as_fecdesde varchar(10),
+@as_fechasta varchar (10),
+@as_quim01 varchar (15),
+@as_quim02 varchar (15),
+@as_quim03 varchar (15),
+@as_quim04 varchar (15),
+@as_quim05 varchar (15)
+)
+AS 
+BEGIN 
+delete from tbl_seted_procesos_rep
+insert into tbl_seted_procesos_rep(
+select codemp,codproceso,descripcion,fecord,numord,codcli,nomcli,cantid_kilos,numprendas,0,0,0,0,numingreso,0 from tbl_ord_prod_formulacion
+where codemp=@as_codemp and (fecord>=convert(date,@as_fecdesde,103) and fecord<=convert(date,@as_fechasta,103))
+)
+
+
+update tbl_seted_procesos_rep
+set quim01=tablaagregada.campoagregado
+from  tbl_seted_procesos_rep t1,
+(select numord,sum(cantid_resul) as campoagregado from tbl_detalle_ord_prod_fumulacion where codemp=@as_codemp
+and (fecord>=convert(date,@as_fecdesde,103) and fecord<=convert(date,@as_fechasta,103)and codart=@as_quim01) GROUP BY numord)tablaagregada
+where t1.numord=tablaagregada.numord
+
+update tbl_seted_procesos_rep
+set quim02=tablaagregada.campoagregado
+from  tbl_seted_procesos_rep t1,
+(select numord,sum(cantid_resul) as campoagregado from tbl_detalle_ord_prod_fumulacion where codemp=@as_codemp
+and (fecord>=convert(date,@as_fecdesde,103) and fecord<=convert(date,@as_fechasta,103)and codart=@as_quim02) GROUP BY numord)tablaagregada
+where t1.numord=tablaagregada.numord
+
+update tbl_seted_procesos_rep
+set quim03=tablaagregada.campoagregado
+from  tbl_seted_procesos_rep t1,
+(select numord,sum(cantid_resul) as campoagregado from tbl_detalle_ord_prod_fumulacion where codemp=@as_codemp
+and (fecord>=convert(date,@as_fecdesde,103) and fecord<=convert(date,@as_fechasta,103)and codart=@as_quim03) GROUP BY numord)tablaagregada
+where t1.numord=tablaagregada.numord
+
+update tbl_seted_procesos_rep
+set quim04=tablaagregada.campoagregado
+from  tbl_seted_procesos_rep t1,
+(select numord,sum(cantid_resul) as campoagregado from tbl_detalle_ord_prod_fumulacion where codemp=@as_codemp
+and (fecord>=convert(date,@as_fecdesde,103) and fecord<=convert(date,@as_fechasta,103)and codart=@as_quim04) GROUP BY numord)tablaagregada
+where t1.numord=tablaagregada.numord
+
+update tbl_seted_procesos_rep
+set quim05=tablaagregada.campoagregado
+from  tbl_seted_procesos_rep t1,
+(select numord,sum(cantid_resul) as campoagregado from tbl_detalle_ord_prod_fumulacion where codemp=@as_codemp
+and (fecord>=convert(date,@as_fecdesde,103) and fecord<=convert(date,@as_fechasta,103)and codart=@as_quim05) GROUP BY numord)tablaagregada
+where t1.numord=tablaagregada.numord
+
+end;
+
+create PROCEDURE "dbo"."sp_seted_procesos_rep"
+( 
+@as_codemp varchar(2),
+@as_nomcomercial varchar(100),
+@as_fecdesde varchar(10),
+@as_fechasta varchar (10)
+)
+as
+BEGIN 
+select codemp,codpro,descripcion,fecord,numord,codcli,nomcli,pesoprendas,numprendas,quim01,quim02,quim03,quim04,
+numingreso,quim05 
+from tbl_seted_procesos_rep 
+where quim01>0 or quim02>0 or quim03>0 or quim04>0 or quim05>0
+order by fecord asc
+END;
+
+
+create PROCEDURE "dbo"."sp_seted_procesos_acum_rep"
+( 
+@as_codemp varchar(2),
+@as_nomcomercial varchar(100),
+@as_fecdesde varchar(10),
+@as_fechasta varchar (10)
+)
+as
+BEGIN 
+select codemp,codpro,descripcion,sum(pesoprendas),sum(numprendas),sum(quim01),sum(quim02),sum(quim03),sum(quim04),sum(quim05)  
+from tbl_seted_procesos_rep 
+where quim01>0 or quim02>0 or quim03>0 or quim04>0 or quim05>0
+group by codemp,codpro,descripcion
+order by codpro asc
+END;
+
+
+// ORDEN PERMANGANATO, HIRDROXIDO DE SODIO,ACIDO ACETICO , CARBONATO DE SODIO
+
+
+
+// SETED PROCEDIMIENTOS
+CREATE TABLE "dbo"."tbl_seted_procedimiento" (
+	"codemp" VARCHAR(5) NOT NULL,
+	"codprocedimiento" VARCHAR(20) NOT NULL,
+	"pesoprendas" DECIMAL(15,4) NULL,
+	"numprendas" DECIMAL(15,4) NULL,
+	"quim01" DECIMAL(15,4) NULL,
+	"quim02" DECIMAL(15,4) NULL,
+	"quim03" DECIMAL(15,4) NULL,
+	"quim04" DECIMAL(15,4) NULL,
+	"quim05" DECIMAL(15,4) NULL,
+	PRIMARY KEY ( "codemp" ASC, "codprocedimiento" ASC )
+) IN "system";
+
+
+create PROCEDURE "dbo"."sp_seted_procedimiento"
+( 
+@as_codemp varchar(2),
+@as_fecdesde varchar(10),
+@as_fechasta varchar (10),
+@as_quim01 varchar (15),
+@as_quim02 varchar (15),
+@as_quim03 varchar (15),
+@as_quim04 varchar (15),
+@as_quim05 varchar (15)
+)
+AS 
+BEGIN 
+delete from tbl_seted_procedimiento
+insert into tbl_seted_procedimiento(
+select codemp,codpro,0,0,0,0,0,0,0 from tbl_procedimiento_formulacion
+where codemp=@as_codemp)
+
+
+
+update tbl_seted_procedimiento
+set quim01=tablaagregada.campoagregado
+from  tbl_seted_procedimiento t1,
+(select codprocesamiento,sum(cantid_resul) as campoagregado from tbl_detalle_ord_prod_fumulacion where codemp=@as_codemp
+and (fecord>=convert(date,@as_fecdesde,103) and fecord<=convert(date,@as_fechasta,103)and codart=@as_quim01) GROUP BY codprocesamiento)tablaagregada
+where t1.codprocedimiento=tablaagregada.codprocesamiento
+
+update tbl_seted_procedimiento
+set quim02=tablaagregada.campoagregado
+from  tbl_seted_procedimiento t1,
+(select codprocesamiento,sum(cantid_resul) as campoagregado from tbl_detalle_ord_prod_fumulacion where codemp=@as_codemp
+and (fecord>=convert(date,@as_fecdesde,103) and fecord<=convert(date,@as_fechasta,103)and codart=@as_quim02) GROUP BY codprocesamiento)tablaagregada
+where t1.codprocedimiento=tablaagregada.codprocesamiento
+
+
+update tbl_seted_procedimiento
+set quim03=tablaagregada.campoagregado
+from  tbl_seted_procedimiento t1,
+(select codprocesamiento,sum(cantid_resul) as campoagregado from tbl_detalle_ord_prod_fumulacion where codemp=@as_codemp
+and (fecord>=convert(date,@as_fecdesde,103) and fecord<=convert(date,@as_fechasta,103)and codart=@as_quim03) GROUP BY codprocesamiento)tablaagregada
+where t1.codprocedimiento=tablaagregada.codprocesamiento
+
+
+update tbl_seted_procedimiento
+set quim04=tablaagregada.campoagregado
+from  tbl_seted_procedimiento t1,
+(select codprocesamiento,sum(cantid_resul) as campoagregado from tbl_detalle_ord_prod_fumulacion where codemp=@as_codemp
+and (fecord>=convert(date,@as_fecdesde,103) and fecord<=convert(date,@as_fechasta,103)and codart=@as_quim04) GROUP BY codprocesamiento)tablaagregada
+where t1.codprocedimiento=tablaagregada.codprocesamiento
+
+
+update tbl_seted_procedimiento
+set quim05=tablaagregada.campoagregado
+from  tbl_seted_procedimiento t1,
+(select codprocesamiento,sum(cantid_resul) as campoagregado from tbl_detalle_ord_prod_fumulacion where codemp=@as_codemp
+and (fecord>=convert(date,@as_fecdesde,103) and fecord<=convert(date,@as_fechasta,103)and codart=@as_quim05) GROUP BY codprocesamiento)tablaagregada
+where t1.codprocedimiento=tablaagregada.codprocesamiento
+
+update tbl_seted_procedimiento
+set pesoprendas=tablaagregada.campoagregado, numprendas=tablaagregada.campoagregado1
+from  tbl_seted_procedimiento t1,
+(
+select ren.codprocesamiento as codprocesamiento,sum(en.cantid_kilos)as campoagregado,sum(en.numprendas)as campoagregado1  
+from tbl_ord_prod_formulacion en,tbl_detalle_ord_prod_fumulacion ren
+where en.codemp=ren.codemp and en.numord=ren.numord and en.codemp=@as_codemp
+and (ren.fecord>=convert(date,@as_fecdesde,103) and ren.fecord<=convert(date,@as_fechasta,103)and ren.codart=@as_quim01) group by codprocesamiento)tablaagregada
+where t1.codprocedimiento=tablaagregada.codprocesamiento
+
+
+update tbl_seted_procedimiento
+set pesoprendas=tablaagregada.campoagregado, numprendas=tablaagregada.campoagregado1
+from  tbl_seted_procedimiento t1,
+(
+select ren.codprocesamiento as codprocesamiento,sum(en.cantid_kilos)as campoagregado,sum(en.numprendas)as campoagregado1  
+from tbl_ord_prod_formulacion en,tbl_detalle_ord_prod_fumulacion ren
+where en.codemp=ren.codemp and en.numord=ren.numord and en.codemp=@as_codemp
+and (ren.fecord>=convert(date,@as_fecdesde,103) and ren.fecord<=convert(date,@as_fechasta,103)and ren.codart=@as_quim02) group by codprocesamiento)tablaagregada
+where t1.codprocedimiento=tablaagregada.codprocesamiento
+
+update tbl_seted_procedimiento
+set pesoprendas=tablaagregada.campoagregado, numprendas=tablaagregada.campoagregado1
+from  tbl_seted_procedimiento t1,
+(
+select ren.codprocesamiento as codprocesamiento,sum(en.cantid_kilos)as campoagregado,sum(en.numprendas)as campoagregado1  
+from tbl_ord_prod_formulacion en,tbl_detalle_ord_prod_fumulacion ren
+where en.codemp=ren.codemp and en.numord=ren.numord and en.codemp=@as_codemp
+and (ren.fecord>=convert(date,@as_fecdesde,103) and ren.fecord<=convert(date,@as_fechasta,103)and ren.codart=@as_quim03) group by codprocesamiento)tablaagregada
+where t1.codprocedimiento=tablaagregada.codprocesamiento
+
+
+update tbl_seted_procedimiento
+set pesoprendas=tablaagregada.campoagregado, numprendas=tablaagregada.campoagregado1
+from  tbl_seted_procedimiento t1,
+(
+select ren.codprocesamiento as codprocesamiento,sum(en.cantid_kilos)as campoagregado,sum(en.numprendas)as campoagregado1  
+from tbl_ord_prod_formulacion en,tbl_detalle_ord_prod_fumulacion ren
+where en.codemp=ren.codemp and en.numord=ren.numord and en.codemp=@as_codemp
+and (ren.fecord>=convert(date,@as_fecdesde,103) and ren.fecord<=convert(date,@as_fechasta,103)and ren.codart=@as_quim04) group by codprocesamiento)tablaagregada
+where t1.codprocedimiento=tablaagregada.codprocesamiento
+
+
+update tbl_seted_procedimiento
+set pesoprendas=tablaagregada.campoagregado, numprendas=tablaagregada.campoagregado1
+from  tbl_seted_procedimiento t1,
+(
+select ren.codprocesamiento as codprocesamiento,sum(en.cantid_kilos)as campoagregado,sum(en.numprendas)as campoagregado1  
+from tbl_ord_prod_formulacion en,tbl_detalle_ord_prod_fumulacion ren
+where en.codemp=ren.codemp and en.numord=ren.numord and en.codemp=@as_codemp
+and (ren.fecord>=convert(date,@as_fecdesde,103) and ren.fecord<=convert(date,@as_fechasta,103)and ren.codart=@as_quim05) group by codprocesamiento)tablaagregada
+where t1.codprocedimiento=tablaagregada.codprocesamiento
+
+end;
+
+create PROCEDURE "dbo"."sp_seted_procedimiento_rep"
+( 
+@as_codemp varchar(2),
+@as_nomcomercial varchar(100),
+@as_fecdesde varchar(10),
+@as_fechasta varchar (10)
+)
+as
+BEGIN 
+select pr.codemp,pr.codpro,pr.descripcion,se.pesoprendas,se.numprendas,se.quim01,se.quim02,se.quim03,se.quim04,se.quim05
+from tbl_seted_procedimiento se, tbl_procedimiento_formulacion pr
+where se.codemp=pr.codemp and se.codprocedimiento=pr.codpro and pr.codemp=@as_codemp
+order by pr.codpro asc
+
+END;
+
+
+
+// SETED PROCESOS
+CREATE TABLE "dbo"."tbl_seted_procesos" (
+	"codemp" VARCHAR(5) NOT NULL,
+	"codproceso" VARCHAR(20) NOT NULL,
+	"pesoprendas" DECIMAL(15,4) NULL,
+	"numprendas" DECIMAL(15,4) NULL,
+	"quim01" DECIMAL(15,4) NULL,
+	"quim02" DECIMAL(15,4) NULL,
+	"quim03" DECIMAL(15,4) NULL,
+	"quim04" DECIMAL(15,4) NULL,
+	"quim05" DECIMAL(15,4) NULL,
+	PRIMARY KEY ( "codemp" ASC, "codproceso" ASC )
+) IN "system";
+
+create PROCEDURE "dbo"."sp_seted_procesos_acum"
+( 
+@as_codemp varchar(2),
+@as_fecdesde varchar(10),
+@as_fechasta varchar (10),
+@as_quim01 varchar (15),
+@as_quim02 varchar (15),
+@as_quim03 varchar (15),
+@as_quim04 varchar (15),
+@as_quim05 varchar (15)
+)
+AS 
+BEGIN 
+delete from tbl_seted_procesos
+insert into tbl_seted_procesos(
+select codemp,codpro,0,0,0,0,0,0,0 from tbl_procesos_formulacion
+where codemp=@as_codemp)
+
+
+
+update tbl_seted_procesos
+set quim01=tablaagregada.campoagregado
+from  tbl_seted_procesos t1,
+(select codproceso,sum(cantid_resul) as campoagregado from tbl_detalle_ord_prod_fumulacion where codemp=@as_codemp
+and (fecord>=convert(date,@as_fecdesde,103) and fecord<=convert(date,@as_fechasta,103)and codart=@as_quim01) GROUP BY codproceso)tablaagregada
+where t1.codproceso=tablaagregada.codproceso
+
+update tbl_seted_procesos
+set quim02=tablaagregada.campoagregado
+from  tbl_seted_procesos t1,
+(select codproceso,sum(cantid_resul) as campoagregado from tbl_detalle_ord_prod_fumulacion where codemp=@as_codemp
+and (fecord>=convert(date,@as_fecdesde,103) and fecord<=convert(date,@as_fechasta,103)and codart=@as_quim02) GROUP BY codproceso)tablaagregada
+where t1.codproceso=tablaagregada.codproceso
+
+update tbl_seted_procesos
+set quim03=tablaagregada.campoagregado
+from  tbl_seted_procesos t1,
+(select codproceso,sum(cantid_resul) as campoagregado from tbl_detalle_ord_prod_fumulacion where codemp=@as_codemp
+and (fecord>=convert(date,@as_fecdesde,103) and fecord<=convert(date,@as_fechasta,103)and codart=@as_quim03) GROUP BY codproceso)tablaagregada
+where t1.codproceso=tablaagregada.codproceso
+
+
+update tbl_seted_procesos
+set quim04=tablaagregada.campoagregado
+from  tbl_seted_procesos t1,
+(select codproceso,sum(cantid_resul) as campoagregado from tbl_detalle_ord_prod_fumulacion where codemp=@as_codemp
+and (fecord>=convert(date,@as_fecdesde,103) and fecord<=convert(date,@as_fechasta,103)and codart=@as_quim04) GROUP BY codproceso)tablaagregada
+where t1.codproceso=tablaagregada.codproceso
+
+update tbl_seted_procesos
+set quim05=tablaagregada.campoagregado
+from  tbl_seted_procesos t1,
+(select codproceso,sum(cantid_resul) as campoagregado from tbl_detalle_ord_prod_fumulacion where codemp=@as_codemp
+and (fecord>=convert(date,@as_fecdesde,103) and fecord<=convert(date,@as_fechasta,103)and codart=@as_quim05) GROUP BY codproceso)tablaagregada
+where t1.codproceso=tablaagregada.codproceso
+
+
+update tbl_seted_procesos
+set pesoprendas=tablaagregada.campoagregado, numprendas=tablaagregada.campoagregado1
+from  tbl_seted_procesos t1,
+(
+select ren.codproceso as codproceso,sum(en.cantid_kilos)as campoagregado,sum(en.numprendas)as campoagregado1  
+from tbl_ord_prod_formulacion en,tbl_detalle_ord_prod_fumulacion ren
+where en.codemp=ren.codemp and en.numord=ren.numord and en.codemp=@as_codemp
+and (ren.fecord>=convert(date,@as_fecdesde,103) and ren.fecord<=convert(date,@as_fechasta,103)and ren.codart=@as_quim01) group by codproceso)tablaagregada
+where t1.codproceso=tablaagregada.codproceso
+
+
+update tbl_seted_procesos
+set pesoprendas=tablaagregada.campoagregado, numprendas=tablaagregada.campoagregado1
+from  tbl_seted_procesos t1,
+(
+select ren.codproceso as codproceso,sum(en.cantid_kilos)as campoagregado,sum(en.numprendas)as campoagregado1  
+from tbl_ord_prod_formulacion en,tbl_detalle_ord_prod_fumulacion ren
+where en.codemp=ren.codemp and en.numord=ren.numord and en.codemp=@as_codemp
+and (ren.fecord>=convert(date,@as_fecdesde,103) and ren.fecord<=convert(date,@as_fechasta,103)and ren.codart=@as_quim02) group by codproceso)tablaagregada
+where t1.codproceso=tablaagregada.codproceso
+
+update tbl_seted_procesos
+set pesoprendas=tablaagregada.campoagregado, numprendas=tablaagregada.campoagregado1
+from  tbl_seted_procesos t1,
+(
+select ren.codproceso as codproceso,sum(en.cantid_kilos)as campoagregado,sum(en.numprendas)as campoagregado1  
+from tbl_ord_prod_formulacion en,tbl_detalle_ord_prod_fumulacion ren
+where en.codemp=ren.codemp and en.numord=ren.numord and en.codemp=@as_codemp
+and (ren.fecord>=convert(date,@as_fecdesde,103) and ren.fecord<=convert(date,@as_fechasta,103)and ren.codart=@as_quim03) group by codproceso)tablaagregada
+where t1.codproceso=tablaagregada.codproceso
+
+
+update tbl_seted_procesos
+set pesoprendas=tablaagregada.campoagregado, numprendas=tablaagregada.campoagregado1
+from  tbl_seted_procesos t1,
+(
+select ren.codproceso as codproceso,sum(en.cantid_kilos)as campoagregado,sum(en.numprendas)as campoagregado1  
+from tbl_ord_prod_formulacion en,tbl_detalle_ord_prod_fumulacion ren
+where en.codemp=ren.codemp and en.numord=ren.numord and en.codemp=@as_codemp
+and (ren.fecord>=convert(date,@as_fecdesde,103) and ren.fecord<=convert(date,@as_fechasta,103)and ren.codart=@as_quim04) group by codproceso)tablaagregada
+where t1.codproceso=tablaagregada.codproceso
+
+update tbl_seted_procesos
+set pesoprendas=tablaagregada.campoagregado, numprendas=tablaagregada.campoagregado1
+from  tbl_seted_procesos t1,
+(
+select ren.codproceso as codproceso,sum(en.cantid_kilos)as campoagregado,sum(en.numprendas)as campoagregado1  
+from tbl_ord_prod_formulacion en,tbl_detalle_ord_prod_fumulacion ren
+where en.codemp=ren.codemp and en.numord=ren.numord and en.codemp=@as_codemp
+and (ren.fecord>=convert(date,@as_fecdesde,103) and ren.fecord<=convert(date,@as_fechasta,103)and ren.codart=@as_quim05) group by codproceso)tablaagregada
+where t1.codproceso=tablaagregada.codproceso
+end;
+
+create PROCEDURE "dbo"."sp_seted_procesos_acum1_rep"
+( 
+@as_codemp varchar(2),
+@as_nomcomercial varchar(100),
+@as_fecdesde varchar(10),
+@as_fechasta varchar (10)
+)
+as
+BEGIN 
+select pr.codemp,pr.codpro,pr.descripcion,se.pesoprendas,se.numprendas,se.quim01,se.quim02,se.quim03,se.quim04 ,se.quim05
+from tbl_seted_procesos se, tbl_procesos_formulacion pr
+where se.codemp=pr.codemp and se.codproceso=pr.codpro and pr.codemp=@as_codemp
+order by pr.codpro asc
+
+END;
+
+
+/// informe control de prendas de pedido a factura
+CREATE TABLE "dbo"."tbl_pedido_factura_control" (
+	"codemp" VARCHAR(5) NOT NULL,
+	"numfac" VARCHAR(15) NOT NULL,
+	"fecfac" "datetime" NULL,
+	"nomcli" VARCHAR(70) NULL,
+	"cantidped" DECIMAL(15,4) NULL,
+	"cantidfac" DECIMAL(15,4) NULL,
+	"total" DECIMAL(15,4) NULL,
+	PRIMARY KEY ( "codemp" ASC, "numfac" ASC )
+) IN "system";
+
+create PROCEDURE "dbo"."sp_control_pedido_factura"
+( 
+@as_codemp varchar(2),
+@as_fecdesde varchar(10),
+@as_fechasta varchar (10)
+)
+AS 
+BEGIN 
+delete from tbl_pedido_factura_control
+
+insert into tbl_pedido_factura_control(
+select c.codemp,r.numtra,r.fecfac,c.nomcli,sum(r.cantid),0,0 from renglonespedidos r, clientes c
+where r.codemp=c.codemp and r.codcli=c.codcli
+and c.codemp=@as_codemp and (r.fecfac>=convert(date,@as_fecdesde,103) and r.fecfac<=convert(date,@as_fechasta,103))
+group by  c.codemp,r.numtra,r.fecfac,c.nomcli
+)
+
+update tbl_pedido_factura_control
+set cantidfac=tablaagregada.campoagregado
+from  tbl_pedido_factura_control t1,
+(select doctrans,sum(cantid) as campoagregado from renglonesfacturas where codemp=@as_codemp
+GROUP BY doctrans)tablaagregada
+where t1.numfac=tablaagregada.doctrans
+
+
+update tbl_pedido_factura_control
+set total=cantidped-cantidfac
+
+end;
+
+
+create PROCEDURE "dbo"."sp_control_pedido_factura_rep"
+( 
+@as_codemp varchar(2),
+@as_nomcomercial varchar(100),
+@as_fecdesde varchar(10),
+@as_fechasta varchar (10)
+)
+AS 
+BEGIN 
+select numfac,fecfac,nomcli,cantidped,cantidfac,total from tbl_pedido_factura_control order by fecfac asc
+END;
+
+
+// INFORME PEDIDO a EGRESOS
+CREATE TABLE "dbo"."tbl_pedido_egreso_control" (
+	"codemp" VARCHAR(5) NOT NULL,
+	"numfac" VARCHAR(15) NOT NULL,
+	"fecfac" "datetime" NULL,
+	"nomcli" VARCHAR(70) NULL,
+	"cantidped" DECIMAL(15,4) NULL,
+	"cantidfac" DECIMAL(15,4) NULL,
+	"total" DECIMAL(15,4) NULL,
+	PRIMARY KEY ( "codemp" ASC, "numfac" ASC )
+) IN "system";
+
+create PROCEDURE "dbo"."sp_control_pedido_egreso"
+( 
+@as_codemp varchar(2),
+@as_fecdesde varchar(10),
+@as_fechasta varchar (10)
+)
+AS 
+BEGIN 
+delete from tbl_pedido_egreso_control
+
+insert into tbl_pedido_egreso_control(
+select c.codemp,r.numtra,r.fecfac,c.nomcli,sum(r.cantid),0,0 from renglonespedidos r, clientes c
+where r.codemp=c.codemp and r.codcli=c.codcli
+and c.codemp=@as_codemp and (r.fecfac>=convert(date,@as_fecdesde,103) and r.fecfac<=convert(date,@as_fechasta,103))
+group by  c.codemp,r.numtra,r.fecfac,c.nomcli
+)
+
+update tbl_pedido_egreso_control
+set cantidfac=tablaagregada.campoagregado
+from  tbl_pedido_egreso_control t1,
+(select doctrans,sum(cantid) as campoagregado from renglonesegresos where codemp=@as_codemp and doctrans is not null
+GROUP BY doctrans)tablaagregada
+where t1.numfac=tablaagregada.doctrans
+
+
+update tbl_pedido_egreso_control
+set total=cantidped-cantidfac
+
+end;
+
+
+create PROCEDURE "dbo"."sp_control_pedido_egreso_rep"
+( 
+@as_codemp varchar(2),
+@as_nomcomercial varchar(100),
+@as_fecdesde varchar(10),
+@as_fechasta varchar (10)
+)
+AS 
+BEGIN 
+select numfac,fecfac,nomcli,cantidped,cantidfac,total from tbl_pedido_egreso_control order by fecfac asc
+END;
+
+CREATE TABLE "dbo"."tbl_factor_division" (
+	"codemp" VARCHAR(4) NOT NULL,
+	"factor" DECIMAL(15,4) NULL,
+	PRIMARY KEY ( "codemp" ASC )
+) IN "system";
+
+// CALCULO DE PRENDAS DE VESTIR
+CREATE TABLE "dbo"."tbl_calculo_prendas" (
+	"codemp" VARCHAR(5) NOT NULL,
+	"numfac" VARCHAR(10) NOT NULL,
+	"fecemi" "datetime" NULL,
+	"referen" VARCHAR(21) NULL,
+	"observ" VARCHAR(91) NULL,
+	"observ1" VARCHAR(107) NULL,
+	"cantid" DECIMAL(15,4) NULL,
+	"cancaja" DECIMAL(15,4) NULL,
+	"talla" DECIMAL(15,4) NULL,
+	"tela" DECIMAL(15,4) NULL,
+	"total" DECIMAL(15,4) NULL,
+	PRIMARY KEY ( "codemp" ASC, "numfac" ASC )
+) IN "system";
+
+
+
+
+CREATE PROCEDURE "dbo"."sp_calculo_prendas_vestir"
+( 
+@as_codemp varchar(2),
+@as_fecdesde varchar(10),
+@as_fechasta varchar (10)
+)
+AS 
+BEGIN 
+delete from tbl_calculo_prendas
+
+insert into tbl_calculo_prendas
+(
+select codemp,numfac,fecemi,referen,observ,observ1,cantid,cancaja,0,0,0 from encabezadoproduccion
+where
+codemp=@as_codemp and (fecemi>=convert(date,@as_fecdesde,103) and fecemi<=convert(date,@as_fechasta,103))
+)
+
+update tbl_calculo_prendas
+set total=tablaagregada.campoagregado
+from  tbl_calculo_prendas t1,
+(select numfac,valprod20 as campoagregado from prd_ordentrabajo_tallas where codemp=@as_codemp)tablaagregada
+where t1.numfac=tablaagregada.numfac
+
+
+update tbl_calculo_prendas
+set talla=tablaagregada.campoagregado
+from  tbl_calculo_prendas t1,
+(
+select numfac,(valprod1+valprod2+valprod3+valprod4+valprod5+valprod6+valprod7+valprod8+valprod9+
+valprod10+valprod11+valprod12+valprod13+valprod14+valprod15+valprod16+valprod17+valprod18+valprod19)as campoagregado
+ from prd_ordentrabajo_tallas where codemp=@as_codemp)tablaagregada
+where t1.numfac=tablaagregada.numfac
+
+
+update tbl_calculo_prendas
+set tela=tablaagregada.campoagregado
+from  tbl_calculo_prendas t1,
+(select numfac,sum(cantid)as campoagregado from renglonesproduccion where codcolor='TEL' and codemp=@as_codemp group by numfac)tablaagregada
+where t1.numfac=tablaagregada.numfac
+
+
+
+end;
+
+//informe de ordenes de produccion
+create PROCEDURE "dbo"."sp_ordenes_prod_rep"
+( 
+@as_codemp varchar(2),
+@as_nomcomercial varchar(100),
+@as_fecdesde varchar(10),
+@as_fechasta varchar (10),
+@as_tipo varchar (40)
+)
+AS
+BEGIN
+if @as_tipo='TODOS'
+select numord,fecord,nomcli,descripcion,numingreso,cantid_kilos,numprendas,descargado from tbl_ord_prod_formulacion
+WHERE codemp=@as_codemp and
+(fecord>=convert(date,@as_fecdesde,103) and fecord<=convert(date,@as_fechasta,103))
+order by fecord asc
+
+if @as_tipo='PROCESOS'
+select numord,fecord,nomcli,descripcion,numingreso,cantid_kilos,numprendas,descargado from tbl_ord_prod_formulacion
+WHERE codemp=@as_codemp and
+(fecord>=convert(date,@as_fecdesde,103) and fecord<=convert(date,@as_fechasta,103)) and reproceso='N'
+order by fecord asc
+
+
+if @as_tipo='REPROCESOS'
+select numord,fecord,nomcli,descripcion,numingreso,cantid_kilos,numprendas,descargado from tbl_ord_prod_formulacion
+WHERE codemp=@as_codemp and
+(fecord>=convert(date,@as_fecdesde,103) and fecord<=convert(date,@as_fechasta,103)) and reproceso='S'
+order by fecord asc
+
+END;
+
+//ordnes de produccion por tandas
+CREATE PROCEDURE "dbo"."sp_orden_produccion_formulacion_rep3"( 
+@as_codemp varchar(2),
+@as_numord varchar(10)
+)
+AS
+BEGIN
+SELECT emp.nomemp,emp.dir01,ord.numord,ord.fecord,ord.codproceso,ord.descripcion,ord.cantid_kilos,ord.maquina,ord.numprendas,ord.numingreso,ord.comentario,
+det.codprocesamiento,det.descripcion_procesamiento,det.codart,det.descripcion_articulo,det.codorden,det.r_b,det.cantid_agua,det.temperatura_p,
+det.tiempo_p,det.medida_egreso,det.cantid_enjuague,(det.cantid_resul/ord.numtandas),ord.codcli,ord.nomcli,ord.numtandas
+FROM empresa emp,tbl_ord_prod_formulacion ord,tbl_detalle_ord_prod_fumulacion det
+where emp.codemp=ord.codemp and ord.codemp=det.codemp and ord.numord=det.numord and
+emp.codemp=@as_codemp and
+ord.numord=@as_numord
+order by det.codorden asc
+END;
+
+// tablas reporte prendas y facturas
+
+
+CREATE TABLE "dbo"."tbl_cantidad_facturas" (
+	"codemp" VARCHAR(5) NOT NULL,
+	"numfac" VARCHAR(15) NOT NULL,
+	"cantid" DECIMAL(15,4) NULL,
+	"total" DECIMAL(15,4) NULL,
+	PRIMARY KEY ( "codemp" ASC, "numfac" ASC )
+) IN "system";
+
+//
+create PROCEDURE "dbo"."sp_control_cantidad_facturas"
+( 
+@as_codemp varchar(2),
+@as_fecdesde varchar(10),
+@as_fechasta varchar (10)
+)
+AS 
+BEGIN 
+delete from tbl_cantidad_facturas
+
+insert into tbl_cantidad_facturas(
+select codemp,numfac,0,0 from encabezadofacturas where
+codemp=@as_codemp and (fecfac>=convert(date,@as_fecdesde,103) and fecfac<=convert(date,@as_fechasta,103))
+)
+
+update tbl_cantidad_facturas
+set total=tablaagregada.campoagregado
+from  tbl_cantidad_facturas t1,
+(select numfac,sum(totfac) as campoagregado from encabezadofacturas where codemp=@as_codemp 
+GROUP BY numfac)tablaagregada
+where  t1.numfac=tablaagregada.numfac 
+
+update tbl_cantidad_facturas
+set cantid=tablaagregada.campoagregado
+from  tbl_cantidad_facturas t1,
+(select numfac,sum(cantid) as campoagregado from renglonesfacturas where codemp=@as_codemp 
+GROUP BY numfac)tablaagregada
+where  t1.numfac=tablaagregada.numfac 
+end;
+
+
+create PROCEDURE "dbo"."sp_control_cantidad_facturas_rep"
+( 
+@as_codemp varchar(2),
+@as_nomcomercial varchar(100),
+@as_fecdesde varchar(10),
+@as_fechasta varchar (10),
+@as_codcli varchar (10),
+@as_tipo varchar (10)
+)
+AS 
+BEGIN 
+if @as_tipo='T'
+select en.codcli,en.rucced,en.nomcli,en.fecfac,ca.numfac,ca.cantid,ca.total from encabezadofacturas en, tbl_cantidad_facturas ca
+where en.codemp=ca.codemp and en.numfac=ca.numfac order by en.codcli asc,en.fecfac asc
+
+if @as_tipo='I'
+select en.codcli,en.rucced,en.nomcli,en.fecfac,ca.numfac,ca.cantid,ca.total from encabezadofacturas en, tbl_cantidad_facturas ca
+where en.codemp=ca.codemp and en.numfac=ca.numfac and en.codcli=@as_codcli order by en.codcli asc,en.fecfac asc
+
+ 
+END;
+
+// otro reporte por procedimientos
+
+CREATE TABLE "dbo"."tbl_seted_procedimeintos_1_rep" (
+	"codemp" VARCHAR(5) NOT NULL,
+	"codprocesamiento" VARCHAR(15) NULL,
+	"descripcion_procesamiento" VARCHAR(45) NULL,
+	"fecord" "datetime" NULL,
+	"numord" VARCHAR(11) NOT NULL,
+	"codcli" VARCHAR(15) NULL,
+	"nomcli" VARCHAR(74) NULL,
+	"pesoprendas" DECIMAL(15,4) NULL,
+	"numprendas" DECIMAL(15,4) NULL,
+	"quim01" DECIMAL(15,4) NULL,
+	"quim02" DECIMAL(15,4) NULL,
+	"quim03" DECIMAL(15,4) NULL,
+	"quim04" DECIMAL(15,4) NULL,
+	"numingreso" VARCHAR(50) NULL,
+	"quim05" DECIMAL(15,4) NULL,
+	PRIMARY KEY ( "codemp" ASC, "numord" ASC )
+) IN "system";
+
+
+
+create PROCEDURE "dbo"."sp_seted_procedimientos1"
+( 
+@as_codemp varchar(2),
+@as_nomcomercial varchar(100),
+@as_fecdesde varchar(10),
+@as_fechasta varchar (10),
+@as_quim01 varchar (15),
+@as_quim02 varchar (15),
+@as_quim03 varchar (15),
+@as_quim04 varchar (15),
+@as_quim05 varchar (15)
+)
+AS 
+BEGIN 
+delete from tbl_seted_procedimeintos_1_rep
+insert into tbl_seted_procedimeintos_1_rep(
+select ord.codemp,det.codprocesamiento,det.descripcion_procesamiento,ord.fecord,ord.numord,ord.codcli,ord.nomcli,ord.cantid_kilos,ord.numprendas,0,0,0,0,ord.numingreso,0 from tbl_ord_prod_formulacion ord,
+tbl_detalle_ord_prod_fumulacion det
+where ord.codemp=det.codemp and ord.numord=det.ord and ord.codemp=@as_codemp and (ord.fecord>=convert(date,@as_fecdesde,103) and ord.fecord<=convert(date,@as_fechasta,103))
+)
+
+
+update tbl_seted_procedimeintos_1_rep
+set quim01=tablaagregada.campoagregado
+from  tbl_seted_procedimeintos_1_rep t1,
+(select numord,sum(cantid_resul) as campoagregado from tbl_detalle_ord_prod_fumulacion where codemp=@as_codemp
+and (fecord>=convert(date,@as_fecdesde,103) and fecord<=convert(date,@as_fechasta,103)and codart=@as_quim01) GROUP BY numord)tablaagregada
+where t1.numord=tablaagregada.numord
+
+update tbl_seted_procedimeintos_1_rep
+set quim02=tablaagregada.campoagregado
+from  tbl_seted_procedimeintos_1_rep t1,
+(select numord,sum(cantid_resul) as campoagregado from tbl_detalle_ord_prod_fumulacion where codemp=@as_codemp
+and (fecord>=convert(date,@as_fecdesde,103) and fecord<=convert(date,@as_fechasta,103)and codart=@as_quim02) GROUP BY numord)tablaagregada
+where t1.numord=tablaagregada.numord
+
+update tbl_seted_procedimeintos_1_rep
+set quim03=tablaagregada.campoagregado
+from  tbl_seted_procedimeintos_1_rep t1,
+(select numord,sum(cantid_resul) as campoagregado from tbl_detalle_ord_prod_fumulacion where codemp=@as_codemp
+and (fecord>=convert(date,@as_fecdesde,103) and fecord<=convert(date,@as_fechasta,103)and codart=@as_quim03) GROUP BY numord)tablaagregada
+where t1.numord=tablaagregada.numord
+
+update tbl_seted_procedimeintos_1_rep
+set quim04=tablaagregada.campoagregado
+from  tbl_seted_procedimeintos_1_rep t1,
+(select numord,sum(cantid_resul) as campoagregado from tbl_detalle_ord_prod_fumulacion where codemp=@as_codemp
+and (fecord>=convert(date,@as_fecdesde,103) and fecord<=convert(date,@as_fechasta,103)and codart=@as_quim04) GROUP BY numord)tablaagregada
+where t1.numord=tablaagregada.numord
+
+update tbl_seted_procedimeintos_1_rep
+set quim05=tablaagregada.campoagregado
+from  tbl_seted_procedimeintos_1_rep t1,
+(select numord,sum(cantid_resul) as campoagregado from tbl_detalle_ord_prod_fumulacion where codemp=@as_codemp
+and (fecord>=convert(date,@as_fecdesde,103) and fecord<=convert(date,@as_fechasta,103)and codart=@as_quim05) GROUP BY numord)tablaagregada
+where t1.numord=tablaagregada.numord
+
+end;
+
+create PROCEDURE "dbo"."sp_seted_procedimiento_1_rep"
+( 
+@as_codemp varchar(2),
+@as_nomcomercial varchar(100),
+@as_fecdesde varchar(10),
+@as_fechasta varchar (10)
+)
+as
+BEGIN 
+select codemp,codpro,descripcion,fecord,numord,codcli,nomcli,pesoprendas,numprendas,quim01,quim02,quim03,quim04,
+numingreso,quim05
+from tbl_seted_procesos_rep 
+where quim01>0 or quim02>0 or quim03>0 or quim04>0 or quim05>0
+order by fecord asc
+END;
+
+
+CREATE TABLE "dbo"."tbl_calculo_articulo" (
+	"codemp" VARCHAR(5) NOT NULL,
+	"cantid_resul" DECIMAL(15,4) NULL,
+	"costo_resul" DECIMAL(15,4) NULL,
+	"cantid_egr" DECIMAL(14,4) NULL,
+	PRIMARY KEY ( "codemp" ASC )
+) IN "system";
+
+create PROCEDURE "dbo"."sp_calculo_producto"
+( 
+@as_codemp varchar(2),
+@as_unidad varchar(10),
+@as_peso decimal(15,4),
+@as_num_prendas decimal(15,4),
+@as_r_b decimal(15,4),
+@as_costo_articulo decimal(15,4),
+@as_porcentaje decimal(15,4),
+@as_cantidad_agua decimal(15,4)
+)
+as
+BEGIN 
+delete from tbl_calculo_articulo
+
+if @as_unidad='GR/LT'
+insert into tbl_calculo_articulo
+values (
+@as_codemp,
+(@as_peso * @as_porcentaje * @as_r_b),
+(@as_peso * @as_porcentaje * @as_r_b * @as_costo_articulo),
+((@as_peso * @as_porcentaje * @as_r_b )/1000)
+)
+
+
+if @as_unidad='GR'
+insert into tbl_calculo_articulo
+values(
+@as_codemp,
+(@as_peso * @as_porcentaje * 10 ),
+(@as_peso * @as_porcentaje * 10 * @as_costo_articulo),
+((@as_peso * @as_porcentaje * 10 )/1000)
+)
+
+
+if @as_unidad='LT'
+insert into tbl_calculo_articulo
+values (
+@as_codemp,
+(@as_peso * @as_porcentaje * @as_r_b ),
+(@as_peso * @as_porcentaje * @as_r_b * @as_costo_articulo),
+((@as_peso * @as_porcentaje * @as_r_b )/1)
+)
+
+
+if @as_unidad='PREN'
+insert into tbl_calculo_articulo
+values (
+@as_codemp,
+(@as_num_prendas* @as_porcentaje ),
+(@as_num_prendas * @as_porcentaje * @as_costo_articulo),
+((@as_num_prendas * @as_porcentaje)/1000)
+)
+
+
+if @as_unidad='LTM'
+insert into tbl_calculo_articulo
+values (
+@as_codemp,
+(@as_r_b* @as_porcentaje ),
+(@as_r_b * @as_porcentaje * @as_costo_articulo),
+((@as_r_b * @as_porcentaje)/1000)
+)
+
+if @as_unidad='EGRP'
+insert into tbl_calculo_articulo
+values (
+@as_codemp,
+(@as_porcentaje ),
+(@as_porcentaje * @as_costo_articulo),
+((@as_porcentaje)/1000)
+)
+
+if @as_unidad='EGRL'
+insert into tbl_calculo_articulo
+values (
+@as_codemp,
+(@as_porcentaje ),
+(@as_porcentaje * @as_costo_articulo),
+((@as_porcentaje)/1000)
+)
+
+END;
+
+
+CREATE PROCEDURE "dbo"."sp_consumos_articulos_rep"
+( 
+@as_codemp varchar(2),
+@as_nomcomercial varchar(100),
+@as_fecdesde varchar(10),
+@as_fechasta varchar (10),
+@as_codcla varchar (10)
+)
+as
+BEGIN 
+select art.codart,art.nomart,art.coduni,sum(det.cantid_resul) as consumo_orden,sum(det.cantid_egr)consumo_microplus 
+from articulos art,tbl_detalle_ord_prod_fumulacion det 
+where art.codemp=det.codemp and
+art.codart=det.codart and
+(det.fecord>=convert(date,@as_fecdesde,103) and det.fecord<=convert(date,@as_fechasta,103))
+and art.codcla=@as_codcla 
+and art.codemp=@as_codemp
+group by art.codart,art.nomart,art.coduni
+order by art.nomart asc
+
+end;
+
+
+create PROCEDURE "dbo"."sp_orden_produccion_formulacion_ecua_rep"( 
+@as_codemp varchar(2),
+@as_numord varchar(10)
+)
+AS
+BEGIN
+SELECT emp.nomemp,emp.dir01,emp.tel01,ord.numord,ord.fecord,ord.codproceso,ord.descripcion,ord.cantid_kilos,ord.maquina,ord.numprendas,ord.numingreso,ord.comentario,
+det.codprocesamiento,det.descripcion_procesamiento,det.codart,det.descripcion_articulo,substring(det.codorden,1,2),det.r_b,det.cantid_agua,det.temperatura_p,det.tiempo_p,det.porcentaje,
+det.medida_egreso,det.cantid_enjuague,det.cantid_resul,ord.codcli,ord.nomcli
+FROM empresa emp,tbl_ord_prod_formulacion ord,tbl_detalle_ord_prod_fumulacion det
+where emp.codemp=ord.codemp and ord.codemp=det.codemp and ord.numord=det.numord and
+emp.codemp=@as_codemp and
+ord.numord=@as_numord
+order by det.codorden asc
+END;
+
+CREATE TABLE "dbo"."tbl_acumular_egreso" (
+	"codemp" VARCHAR(5) NOT NULL,
+	"codart" VARCHAR(15) NOT NULL,
+	"nomart" VARCHAR(90) NULL,
+	"coduni" VARCHAR(5) NULL,
+	"codiva" VARCHAR(1) NULL,
+	"codcla" VARCHAR(10) NULL,
+	"codcolor" VARCHAR(10) NULL,
+	"prec01" DECIMAL(15,4) NULL,
+	"cantid" DECIMAL(15,4) NULL,
+	"total" DECIMAL(15,4) NULL,
+	"basea" DECIMAL(15,4) NULL,
+	"excen" DECIMAL(15,4) NULL,
+	PRIMARY KEY ( "codemp" ASC, "codart" ASC )
+) IN "system";
+
+CREATE PROCEDURE "dbo"."sp_acumular_egreso"
+( 
+@as_codemp varchar(2),
+@as_fecdesde varchar(10),
+@as_fechasta varchar (10)
+)
+as
+BEGIN 
+
+delete from tbl_acumular_egreso
+
+insert into tbl_acumular_egreso(
+select art.codemp,art.codart,art.nomart,art.coduni,art.codiva,art.codcla,art.codcolor,art.prec01,sum(det.cantid_egr)consumo,0,0,0
+from articulos art,tbl_detalle_ord_prod_fumulacion det 
+where art.codemp=det.codemp and
+art.codart=det.codart and
+(det.fecord>=convert(date,@as_fecdesde,103) and det.fecord<=convert(date,@as_fechasta,103))
+and art.codemp=@as_codemp
+group by art.codemp,art.codart,art.nomart,art.coduni,art.codiva,art.codcla,art.codcolor,art.prec01
+order by art.nomart asc)
+
+update tbl_acumular_egreso set total=prec01*cantid where codemp=@as_codemp
+
+update tbl_acumular_egreso set basea=(total /1.12) where codiva='1' and codemp=@as_codemp
+update tbl_acumular_egreso set excen=total where codiva='0' and codemp=@as_codemp
+
+end;
+//*********************REPORTE DE ARTICULOS CON IMAGENES ************************************
+
+create PROCEDURE "dbo"."sp_articulosing_rep"
+( 
+@as_codemp varchar(2),
+@as_nomcomercial varchar(100),
+@as_tipo varchar (10),
+@as_codcla varchar(20),
+@as_descripcion varchar(100)
+)
+AS
+BEGIN
+
+if @as_tipo='T1'
+select cla.codcla,cla.nomcla,art.codart,art.nomart,art.prec01,art.prec02,art.exiact,img.imagen
+from clasesarticulos cla, articulos art,articulos_imagenes img
+where 
+cla.codemp=art.codemp and
+cla.codcla=art.codcla and
+art.codemp=img.codemp and
+art.codart=img.codart
+and art.exiact>0
+and art.codemp=@as_codemp
+ORDER BY ART.NOMART asc
+
+if @as_tipo='T2'
+select cla.codcla,cla.nomcla,art.codart,art.nomart,art.prec01,art.prec02,art.exiact,img.imagen
+from clasesarticulos cla, articulos art,articulos_imagenes img
+where 
+cla.codemp=art.codemp and
+cla.codcla=art.codcla and
+art.codemp=img.codemp and
+art.codart=img.codart
+and art.codemp=@as_codemp
+ORDER BY ART.NOMART asc
+
+if @as_tipo='T3'
+select cla.codcla,cla.nomcla,art.codart,art.nomart,art.prec01,art.prec02,art.exiact,img.imagen
+from clasesarticulos cla, articulos art,articulos_imagenes img
+where 
+cla.codemp=art.codemp and
+cla.codcla=art.codcla and
+art.codemp=img.codemp and
+art.codart=img.codart
+and art.exiact>0
+and art.codemp=@as_codemp
+and art.codcla=@as_codcla
+ORDER BY ART.NOMART asc
+
+if @as_tipo='T4'
+select cla.codcla,cla.nomcla,art.codart,art.nomart,art.prec01,art.prec02,art.exiact,img.imagen
+from clasesarticulos cla, articulos art,articulos_imagenes img
+where 
+cla.codemp=art.codemp and
+cla.codcla=art.codcla and
+art.codemp=img.codemp and
+art.codart=img.codart
+and art.codemp=@as_codemp
+and art.codcla=@as_codcla
+ORDER BY ART.NOMART asc
+
+end;
+
+//***************REPORTE DE UTILIDADES EN VENTAS **********************************************************************
+
+CREATE PROCEDURE "dbo"."sp_utilidad_articulos_renglon_rep"
+( 
+@as_codemp varchar(2),
+@as_fecdesde varchar(10),
+@as_fechasta varchar (10),
+@as_nombrecomercial varchar(100)
+)
+as
+BEGIN 
+select ren.numfac,ren.fecfac,art.codart,art.nomart,kar.cosuni,
+(ren.cantid*ren.valuni) as cantid_real,(kar.cosuni*cantid_real) as costo_real,ren.totren as venta_real,(venta_real-costo_real) as utilidad
+from articulos art, kardex kar , renglonesfacturas ren where 
+art.codemp=kar.codemp and
+art.codart=kar.codart and
+kar.codemp=ren.codemp and
+kar.numdoc=ren.numfac and
+kar.numren=ren.numren and
+kar.codart=ren.codart and
+kar.tiporg='FAC'
+and ren.codemp= @as_codemp
+and 
+(ren.fecfac>=convert(date,@as_fecdesde,103) and ren.fecfac<=convert(date,@as_fechasta,103))
+ order by kar.fecdoc desc
+END;
+
+
+CREATE PROCEDURE "dbo"."sp_utilidad_articulos_factura_rep"
+( 
+@as_codemp varchar(2),
+@as_fecdesde varchar(10),
+@as_fechasta varchar (10),
+@as_nombrecomercial varchar(100)
+)
+as
+BEGIN 
+select enc.codcli,enc.nomcli,ren.numfac,ren.fecfac,art.codart,art.nomart,kar.cosuni,
+(ren.cantid*ren.valuni) as cantid_real,(kar.cosuni*cantid_real) as costo_real,ren.totren as venta_real,(venta_real-costo_real) as utilidad
+from articulos art, kardex kar , renglonesfacturas ren, encabezadofacturas enc where 
+art.codemp=kar.codemp and
+art.codart=kar.codart and
+kar.codemp=ren.codemp and
+kar.numdoc=ren.numfac and
+kar.numren=ren.numren and
+kar.codart=ren.codart and
+ren.codemp=enc.codemp AND 
+ren.numfac=enc.numfac and
+kar.tiporg='FAC' 
+and ren.codemp= @as_codemp
+and 
+(ren.fecfac>=convert(date,@as_fecdesde,103) and ren.fecfac<=convert(date,@as_fechasta,103))
+ order by ren.numfac asc,kar.fecdoc desc
+
+
+END;
+
+
+CREATE PROCEDURE "dbo"."sp_utilidad_acumulada_articulos_factura_rep"
+( 
+@as_codemp varchar(2),
+@as_fecdesde varchar(10),
+@as_fechasta varchar (10),
+@as_nombrecomercial varchar(100)
+)
+as
+BEGIN 
+select ren.numfac,enc.nomcli,ren.fecfac,
+sum(kar.cosuni*(ren.cantid*ren.valuni)) as costo_real,sum(ren.totren) as venta_real,
+sum((ren.totren)-(kar.cosuni*(ren.cantid*ren.valuni))) as utilidad
+from articulos art, kardex kar , renglonesfacturas ren, encabezadofacturas enc where 
+art.codemp=kar.codemp and
+art.codart=kar.codart and
+kar.codemp=ren.codemp and
+kar.numdoc=ren.numfac and
+kar.numren=ren.numren and
+kar.codart=ren.codart and
+ren.codemp=enc.codemp AND 
+ren.numfac=enc.numfac and
+kar.tiporg='FAC' 
+and ren.codemp= @as_codemp
+and 
+(ren.fecfac>=convert(date,@as_fecdesde,103) and ren.fecfac<=convert(date,@as_fechasta,103))
+ group by ren.numfac,enc.nomcli,ren.fecfac
+order by ren.fecfac asc,ren.numfac asc
+
+END;
+
+
+
+//*************************************************************************************************************
+CREATE PROCEDURE "dbo"."sp_clientes_zona_rep"
+( 
+@as_codemp varchar(2),
+@as_fecdesde varchar(10),
+@as_fechasta varchar (10),
+@as_nombrecomercial varchar(100),
+@as_codser varchar(50),
+@as_tipo varchar(3),
+@as_codzona varchar(10),
+@as_nombrecreporte varchar(200),
+@as_nummes varchar(3)
+)
+as
+BEGIN 
+
+if @as_tipo='A1'
+select cli.codzona,zon.nomzona,cli.rucced,cli.codcli,cli.nomcli,cli.dircli,ser.nomser,cli.observ as puesto,
+sum(ren.cantid) num_meses,sum(ren.totren) tot_recaudado 
+from clientes cli,encabezadofacturas enc,renglonesfacturas ren, serviciosvarios ser,zona zon
+where
+cli.codemp=enc.codemp and
+cli.codcli=enc.codcli and
+enc.codemp=ren.codemp and
+enc.numfac=ren.numfac and
+ren.codemp=ser.codemp  and
+ren.codart='\'+ ser.codser and
+cli.codemp=zon.codemp and
+cli.codzona=zon.codzona and
+cli.codemp=@as_codemp and
+cli.codzona=@as_codzona and
+ser.codser=@as_codser and
+(ren.fecfac>=convert(date,@as_fecdesde,103) and ren.fecfac<=convert(date,@as_fechasta,103))
+group by cli.codzona,zon.nomzona,cli.rucced,cli.codcli,cli.nomcli,cli.dircli,ser.nomser,cli.observ
+order by cli.observ asc
+
+
+
+if @as_tipo='A2'
+select cli.codzona,zon.nomzona,cli.rucced,cli.codcli,cli.nomcli,cli.dircli,ser.nomser,cli.observ as puesto,
+sum(ren.cantid) num_meses,sum(ren.totren) tot_recaudado 
+from clientes cli,encabezadofacturas enc,renglonesfacturas ren, serviciosvarios ser,zona zon
+where
+cli.codemp=enc.codemp and
+cli.codcli=enc.codcli and
+enc.codemp=ren.codemp and
+enc.numfac=ren.numfac and
+ren.codemp=ser.codemp  and
+ren.codart='\'+ ser.codser and
+cli.codemp=zon.codemp and
+cli.codzona=zon.codzona and
+cli.codemp=@as_codemp and
+ser.codser=@as_codser and
+(ren.fecfac>=convert(date,@as_fecdesde,103) and ren.fecfac<=convert(date,@as_fechasta,103))
+group by cli.codzona,zon.nomzona,cli.rucced,cli.codcli,cli.nomcli,cli.dircli,ser.nomser,cli.observ
+order by cli.observ asc
+
+end;
+
+
+CREATE TABLE "dbo"."tbl_cargar_agua_rep" (
+	"codemp" VARCHAR(6) NOT NULL,
+	"numord" VARCHAR(8) NOT NULL,
+	"descripcion_proceso" VARCHAR(40) NULL,
+	"fecord" "datetime" NULL,
+	"codart" VARCHAR(9) NOT NULL,
+	"descripcion_articulo" VARCHAR(35) NULL,
+	"total_consumo" DECIMAL(15,4) NULL,
+	PRIMARY KEY ( "codemp" ASC, "numord" ASC, "codart" ASC )
+) IN "system";
+
+
+create PROCEDURE "dbo"."sp_cargar_agua_sanblas"
+( 
+@as_codemp varchar(2),
+@as_fecdesde varchar(10),
+@as_fechasta varchar (10)
+)
+AS 
+BEGIN 
+delete from tbl_cargar_agua_rep
+insert into tbl_cargar_agua_rep(
+select codemp,numord,descripcion_proceso,fecord,codart,descripcion_articulo,sum(cantid_resul) from tbl_detalle_ord_prod_fumulacion
+where codemp=@as_codemp and (fecord>=convert(date,@as_fecdesde,103) and fecord<=convert(date,@as_fechasta,103))
+group by codemp,numord,descripcion_proceso,fecord,codart,descripcion_articulo
+)
+end;
+

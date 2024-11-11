@@ -1,0 +1,286 @@
+//CREADO PARA AVICOLA MISHELL COSTO DE PRODUCCION
+create PROCEDURE "dbo"."sp_recalculo_costos_produccion_w"
+( 
+	@as_codemp VARCHAR(5) ,
+	@as_codsec VARCHAR(10),
+	@as_fecdesde date ,
+	@as_fechasta date 
+	
+)
+AS 
+BEGIN 
+
+
+update renglonesproduccion
+set observ=tablaagregada.campoagregado
+from  renglonesproduccion t1,
+(
+select  numfac,codsec as campoagregado from encabezadoproduccion
+where codemp=@as_codemp and codsec=@as_codsec and
+(fecemi>=@as_fecdesde and fecemi<=@as_fechasta) 
+)tablaagregada
+where 
+t1.numfac=tablaagregada.numfac and
+t1.codemp=@as_codemp
+
+
+
+update renglonesproduccion
+set preuni=tablaagregada.campoagregado, totren=tablaagregada.campoagregado1
+from  renglonesproduccion t1,
+(
+select  numdoc,numren,cosuni as campoagregado, costot as campoagregado1 from kardex 
+where codemp=@as_codemp and 
+(fecdoc>=@as_fecdesde and fecdoc<=@as_fechasta) 
+and tiporg='PRD' AND TIPDOC='SA'
+)tablaagregada
+where 
+t1.numfac=tablaagregada.numdoc and
+t1.numren=tablaagregada.numren and
+t1.codemp=@as_codemp and
+t1.observ=@as_codsec
+
+
+
+update encabezadoproduccion
+set totren=tablaagregada.campoagregado
+from  encabezadoproduccion t1,
+(
+select  numfac,sum(totren) as campoagregado from renglonesproduccion
+where codemp=@as_codemp and (fecemi>=@as_fecdesde and fecemi<=@as_fechasta) 
+group by numfac
+)tablaagregada
+where 
+t1.numfac=tablaagregada.numfac and
+t1.codemp=@as_codemp
+
+
+
+update kardex
+set costot=tablaagregada.campoagregado
+from  kardex t1,
+(
+select  numfac,sum(totren) as campoagregado from renglonesproduccion
+where codemp=@as_codemp and (fecemi>=@as_fecdesde and fecemi<=@as_fechasta) 
+group by numfac
+)tablaagregada
+where 
+t1.numdoc=tablaagregada.numfac and
+t1.tiporg='PRD' AND t1.tipdoc='EN' and
+t1.codemp=@as_codemp
+
+
+update kardex
+set cosuni=costot/cantot
+where 
+codemp=@as_codemp and
+(fecdoc>=@as_fecdesde and fecdoc<=@as_fechasta) and tiporg='PRD' AND TIPDOC='EN'
+end ;
+
+// esto es para crear el excel
+
+CREATE TABLE "dbo"."tbl_migra_excel_articulos" (
+	"codart" VARCHAR(100) NOT NULL,
+	"nomart" VARCHAR(200) NOT NULL,
+	"costo" DECIMAL(15,4) NOT NULL,
+	"cantid" DECIMAL(15,4) NOT NULL,
+	"totren" DECIMAL(15,4) NOT NULL,
+	"numren" INTEGER NOT NULL,
+	"porceiva" DECIMAL(15,4) NULL,
+	"codivasri" VARCHAR(10) NULL,
+	"codiva" VARCHAR(10) NULL,
+	"coduni" VARCHAR(10) NULL,
+	"codcla" VARCHAR(20) NULL,
+	"codcolor" VARCHAR(10) NULL,
+	"basea" DECIMAL(15,4) NULL,
+	"excen" DECIMAL(15,4) NULL,
+	"codemp" VARCHAR(5) NOT NULL,
+	"numtra" VARCHAR(12) NULL,
+	"fectra" "datetime" NULL,
+	"prec01" DECIMAL(15,4) NULL,
+	"prec02" DECIMAL(15,4) NULL,
+	"prec03" DECIMAL(15,4) NULL,
+	"prec04" DECIMAL(15,4) NULL
+) IN "system";
+
+create PROCEDURE "dbo"."sp_crear_articulos_excel"
+( 
+	@as_codemp VARCHAR(5) ,
+	@as_codcla VARCHAR(50) ,
+    @as_subcodcla VARCHAR(50),
+    @as_codcolor VARCHAR(50),
+    @as_coduni VARCHAR(50),
+    @as_codiva VARCHAR(50),
+    @as_codart VARCHAR(100),
+    @as_nomart VARCHAR(100),
+    @as_prec01 DECIMAL(18,6),
+    @as_prec02 DECIMAL(18,6),
+    @as_prec03 DECIMAL(18,6),
+    @as_prec04 DECIMAL(18,6),
+    @as_fecult date 
+)
+as
+begin
+insert into articulos
+VALUES
+(
+@as_codemp,@as_codart,@as_codiva,@as_codcla, @as_coduni,@as_nomart,NULL,NULL,NULL,
+@as_prec01,@as_prec02,@as_prec03,@as_prec04,0,0,0,'',
+0,0,0,0,'TEAMMICRO',@as_fecult,NULL,NULL,NULL,NULL,
+0,@as_codcolor,1,
+'N',0,NULL,0,0,0,0,NULL,NULL,NULL,NULL,NULL,NULL,0,0,0,0,'N','N','N',
+NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,0,'B','S',0,0,0,'N',NULL,NULL,NULL,NULL,NULL,NULL,NULL,
+'S',NULL,NULL,NULL,NULL,@as_subcodcla,NULL,'N',NULL,NULL,NULL,NULL,0,0,0,NULL,NULL,NULL,1,NULL,
+0,0,0,0,
+NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL
+)
+end;
+
+create PROCEDURE "dbo"."sp_llenar_articulos_excel"
+( 
+	@as_codemp VARCHAR(5) ,
+	@as_codart VARCHAR(100),
+    @as_nomart VARCHAR(500),
+      @as_costo DECIMAL(15,4),
+    @as_cantid DECIMAL(15,4),
+    @as_numren integer,
+    @as_fecult date
+)
+as
+begin
+insert into tbl_migra_excel_articulos
+VALUES
+(
+ @as_codart,@as_nomart,@as_costo,@as_cantidad,0,@as_numren,
+   '','','','','','',
+ 0,0,
+@as_codemp,'',@as_fecult,0,0,0,0
+)
+end;
+
+create PROCEDURE "dbo"."sp_elimna_articulos_excel"
+( 
+	@as_codemp VARCHAR(5) 
+)
+as
+begin
+delete from tbl_migra_excel_articulos  where codemp=@as_codemp
+end;
+
+create PROCEDURE "dbo"."sp_calcular_renglones_migra_excel"
+( 
+	@as_codemp VARCHAR(5) 
+)
+AS 
+BEGIN 
+
+update tbl_migra_excel_articulos
+set codcla=tablaagregada.campoagregado
+from  tbl_migra_excel_articulos t1,
+(select  codart,codcla as campoagregado from articulos where codemp=@as_codemp
+)tablaagregada
+where t1.codart=tablaagregada.codart and
+      t1.codemp=@as_codemp 
+
+update tbl_migra_excel_articulos
+set codcolor=tablaagregada.campoagregado
+from  tbl_migra_excel_articulos t1,
+(select  codart,codcolor as campoagregado from articulos where codemp=@as_codemp
+)tablaagregada
+where t1.codart=tablaagregada.codart and
+      t1.codemp=@as_codemp 
+
+
+update tbl_migra_excel_articulos
+set coduni=tablaagregada.campoagregado
+from  tbl_migra_excel_articulos t1,
+(select  codart,coduni as campoagregado from articulos where codemp=@as_codemp
+)tablaagregada
+where t1.codart=tablaagregada.codart and
+            t1.codemp=@as_codemp 
+
+
+update tbl_migra_excel_articulos
+set codiva=tablaagregada.campoagregado
+from  tbl_migra_excel_articulos t1,
+(select  codart,codiva as campoagregado from articulos where codemp=@as_codemp
+)tablaagregada
+where t1.codart=tablaagregada.codart and
+      t1.codemp=@as_codemp 
+
+update tbl_migra_excel_articulos
+set porceiva=tablaagregada.campoagregado
+from  tbl_migra_excel_articulos t1,
+(select  codiva,(poriva/100) as campoagregado from iva where codemp=@as_codemp 
+)tablaagregada
+where t1.codiva=tablaagregada.codiva and
+             t1.codemp=@as_codemp 
+
+
+update tbl_migra_excel_articulos
+set codivasri=tablaagregada.campoagregado
+from  tbl_migra_excel_articulos t1,
+(select  codiva,codivasri as campoagregado from iva where codemp=@as_codemp
+)tablaagregada
+where t1.codiva=tablaagregada.codiva and
+             t1.codemp=@as_codemp 
+
+
+update tbl_migra_excel_articulos
+set totren=costo*cantid
+where codemp=@as_codemp
+
+update tbl_migra_excel_articulos
+set basea=costo*cantid
+where codemp=@as_codemp and codiva<>'0'
+
+update tbl_migra_excel_articulos
+set excen=costo*cantid
+where codemp=@as_codemp and codiva='0'
+
+end;
+
+create PROCEDURE "dbo"."sp_encabezado_excel"
+( 
+	@as_codemp VARCHAR(5) ,
+	@as_numtra VARCHAR(20),
+    @as_codpro VARCHAR(20),
+    @as_nompro VARCHAR(200),
+    @as_codalm VARCHAR(20),
+    @as_fecult date
+)
+as
+begin
+insert into encabezadoordcom
+VALUES
+(
+@as_codemp,
+'1',
+@as_numtra,
+@as_codalm,@as_codpro,@as_fecult,null,
+0,null,null,@as_codalm,1,'TEAMMICRO',@as_fecult,0,0,0,0,0,0,@as_nompro,0,@as_fecult,'',
+0,'001001','N',0,0,'D','001',NULL,'N',0,0,0,0,0,0,0,NULL
+)
+
+insert into renglonesordcom
+(
+select @as_codemp,'',@as_numtra,numren,null,codart,nomart,coduni,cantid,costo,totren,
+codiva,0,0,1,null,1,
+(case when codiva<>'0' then basea else 0 end),
+(case when codiva='0' then excen else 0 end),
+'00:00:00.000',null, @as_fecult,@as_codalm,@as_codpro,'TEAMMICRO',@as_fecult,
+'001',codcla,codcolor,'S',NULL,NULL,'B',NULL,NULL,NULL,porceiva,codivasri from tbl_migra_excel_articulos
+)
+
+update encabezadoordcom
+set totnet=tablaagregada.campoagregado,totfac=tablaagregada.campoagregado,excen=tablaagregada.campoagregado
+from  encabezadoordcom t1,
+(select  numtra,sum(totren) as campoagregado from renglonesordcom 
+where codemp=@as_codemp and numtra=@as_numtra
+group by numtra
+)tablaagregada
+where t1.numtra=tablaagregada.numtra and
+      t1.codemp=@as_codemp 
+
+end;
+

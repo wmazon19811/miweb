@@ -1,0 +1,377 @@
+CREATE TABLE "dbo"."tbl_bloques_consumo" (
+	"codemp" VARCHAR(10) NOT NULL,
+	"codbloque" VARCHAR(20) NOT NULL,
+	"nombloque" VARCHAR(50) NULL,
+	"valorconsumo" DECIMAL(15,4) NULL,
+	"valorinicio" DECIMAL(15,4) NULL,
+	"valorfin" DECIMAL(15,4) NULL,
+	"valorexcente" DECIMAL(15,4) NULL,
+	PRIMARY KEY ( "codemp" ASC, "codbloque" ASC )
+) IN "system";
+
+
+CREATE PROCEDURE "dbo"."sp_actualizar_planillas_agua"
+( 
+@as_codemp  VARCHAR(5),
+@as_numfac VARCHAR(20),
+@as_codart VARCHAR(20),
+@as_codser VARCHAR(20),
+@as_nombre VARCHAR(50),
+@as_valorcosumo DECIMAL(15,4),
+@as_valorexcedente DECIMAL(15,4)
+	
+)
+as
+begin
+
+update renglonesnotasventa set 
+preuni= @as_valorcosumo, nomart=nomart + ' ' + @as_nombre
+where 
+codemp=@as_codemp and 
+numfac=@as_numfac and 
+codart=@as_codser
+
+update renglonesnotasventa set 
+preuni= @as_valorexcedente
+where 
+codemp=@as_codemp and 
+numfac=@as_numfac and 
+codart=@as_codart
+
+update renglonesnotasventa set 
+totren= cantid * preuni, excen= cantid * preuni
+where 
+codemp=@as_codemp and 
+numfac=@as_numfac 
+
+
+
+update encabezadonotasventa
+set totfac= tablaagregada.campoagregado, excen= tablaagregada.campoagregado,
+subtot= tablaagregada.campoagregado
+from  encabezadonotasventa t1,
+(
+select numfac,sum(totren) as campoagregado from renglonesnotasventa
+where codemp=@as_codemp and numfac=@as_numfac
+group by numfac
+)tablaagregada
+where t1.numfac=tablaagregada.numfac and
+      t1.codemp=@as_codemp
+
+
+update encabezadonotasventa set 
+codcajero='S'
+where 
+codemp=@as_codemp and 
+numfac=@as_numfac
+
+end;
+
+
+
+
+
+// TOMA DE LECTURAS SOCIOS
+
+CREATE PROCEDURE "dbo"."sp_toma_lecturas_rep"
+( 
+@as_codemp varchar(2),
+@as_nomcomercial varchar(100),
+@as_fecdesde varchar(10),
+@as_fechasta varchar (10),
+@as_codcla varchar (10),
+@as_zona varchar (60)
+)
+AS
+BEGIN
+SELECT 
+(
+Case When (cl.codcli>0 and cl.codcli<=9)  Then '00'+cl.codcli 
+else 
+Case When (cl.codcli>=10 and cl.codcli<=99)  Then '00'+cl.codcli
+else 
+'0'+cl.codcli
+End
+end
+) 
+as CODIGO,cl.nomcli AS SOCIO,cc.preuni as CO_BASICO,cc.inicial AS LEC_ANTERIOR,cc.actual AS LEC_ACTUAL,
+cc.consumo AS EXCEDENTE,cc.mesconsumo FROM clientes cl, clientesconsumo cc where cl.codemp=cc.codemp AND 
+cl.codcli=cc.codcli AND  cl.codemp=@as_codemp  and  (cc.mesconsumo>=convert(date, @as_fecdesde , 103) 
+and cc.mesconsumo<=convert(date, @as_fechasta, 103)) and cl.codcla=@as_codcla  order by CODIGO asc
+END;
+ // servicios asignados a socios
+
+CREATE PROCEDURE "dbo"."sp_servicios_asignados_socios_rep"
+( 
+@as_codemp varchar(2),
+@as_nomcomercial varchar(100)
+)
+AS
+BEGIN
+select 
+(
+Case When (cl.codcli>0 and cl.codcli<=9)  Then '00'+cl.codcli 
+else 
+Case When (cl.codcli>=10 and cl.codcli<=99)  Then '00'+cl.codcli
+else 
+'0'+cl.codcli
+End
+end
+) as codigo
+,cl.nomcli,cl.dircli,cl.telcli,coditem,nomitem from clientes cl,clientesservicios cs
+where cl.codemp=cs.codemp and cl.codcli=cs.codcli and cl.codemp=@as_codemp 
+order by codigo asc
+end;
+
+// VERIFICAR PLANILLAS GENERADAS ESTEN FACTURADAS
+CREATE PROCEDURE "dbo"."sp_planillas_generadas_esten_facturadas_rep"
+( 
+@as_codemp varchar(2),
+@as_nomcomercial varchar(100),
+@as_fecdesde varchar(10),
+@as_fechasta varchar (10),
+@as_tipo varchar (10),
+@as_codcla varchar (10),
+@as_zona varchar (60)
+)
+AS
+BEGIN
+
+if @as_tipo='T'
+select e.numfac as numfac,e.numtra as numtra,e.fecfac as fecfac,e.codcli as codcli,
+e.nomcli as nomcli,e.dircli as dircli,e.totfac as totfac FROM clientes c,encabezadonotasventa e
+ where
+c.codemp=e.codemp and c.codcli=e.codcli and
+(e.fecfac>=convert(date, @as_fecdesde , 103) 
+and e.fecfac<=convert(date, @as_fechasta, 103)) and e.codemp=@as_codemp 
+and c.codcla=@as_codcla and e.estado='P'
+order by e.codcli asc
+
+if @as_tipo='N'
+select e.numfac as numfac,e.numtra as numtra,e.fecfac as fecfac,e.codcli as codcli,
+e.nomcli as nomcli,e.dircli as dircli,e.totfac as totfac FROM clientes c,encabezadonotasventa e
+ where
+c.codemp=e.codemp and c.codcli=e.codcli and
+(e.fecfac>=convert(date, @as_fecdesde , 103) 
+and e.fecfac<=convert(date, @as_fechasta, 103)) and e.codemp=@as_codemp 
+and c.codcla=@as_codcla
+and (e.numtra is null or e.numtra='') and e.estado='P'
+order by e.codcli asc
+
+end;
+
+
+
+
+CREATE PROCEDURE "dbo"."sp_toma_lecturas_mes_nuevo_rep"
+( 
+@as_codemp varchar(2),
+@as_nomcomercial varchar(100),
+@as_fecdesde varchar(10),
+@as_fechasta varchar (10),
+@as_codcla varchar (10),
+@as_zona varchar (60),
+@as_meslectura varchar(100)
+)
+AS
+BEGIN
+SELECT 
+(
+Case When (codcli>0 and codcli<=9)  Then '00'+codcli 
+else 
+Case When (codcli>=10 and codcli<=99)  Then '00'+codcli
+else 
+'0'+codcli
+End
+end
+)
+as CODIGO,nomcli AS SOCIO, dircli as DIRECCION, telcli as TELEFONO
+FROM clientes where codemp=@as_codemp and codcla=@as_codcla order by codigo asc
+END;
+
+CREATE TABLE "dbo"."tbl_consumo_zonas" (
+	"codemp" VARCHAR(7) NOT NULL,
+	"codser" VARCHAR(26) NOT NULL,
+	"nomser" VARCHAR(61) NULL,
+	"valor" DECIMAL(15,4) NULL,
+	PRIMARY KEY ( "codemp" ASC, "codser" ASC )
+) IN "system";
+
+
+CREATE PROCEDURE "dbo"."sp_llenar_consumo_servicios"
+( 
+@as_codemp varchar(2),
+@as_fecdesde varchar(10),
+@as_fechasta varchar (10),
+@as_codcla varchar (20)
+)
+AS 
+BEGIN 
+delete from tbl_consumo_zonas
+
+insert into tbl_consumo_zonas
+(
+select codemp,'\'+codser,nomser,0 from serviciosvarios
+where
+codemp=@as_codemp 
+)
+
+insert into tbl_consumo_zonas
+(
+select codemp,codart,nomart,0 from articulos
+where
+codemp=@as_codemp 
+)
+
+update tbl_consumo_zonas
+set valor=  valor + tablaagregada.campoagregado
+from  tbl_consumo_zonas t1,
+(
+select r.codart as codart1,sum(r.totren) as campoagregado from clientes c,encabezadofacturas e , renglonesfacturas r
+where
+c.codemp=e.codemp and
+c.codcli=e.codcli and
+e.codemp=r.codemp and
+e.numfac=r.numfac and
+(r.fecfac>=convert(date,@as_fecdesde,103) and r.fecfac<=convert(date,@as_fechasta,103)) and
+r.codemp=@as_codemp and c.codcla=@as_codcla
+and e.estado<>'A'
+group by codart1
+)tablaagregada
+where t1.codser=tablaagregada.codart1
+
+end;
+
+
+
+
+CREATE PROCEDURE "dbo"."sp_consumo_zonas_rep"
+( 
+@as_codemp varchar(2),
+@as_nomcomercial varchar(100),
+@as_fecdesde varchar(10),
+@as_fechasta varchar (10),
+@as_codcla varchar (10),
+@as_zona varchar (60)
+)
+AS
+BEGIN
+SELECT codser as CODIGO,nomser AS SERVICIO,valor as RECAUDACION
+FROM tbl_consumo_zonas
+END;
+
+
+
+CREATE PROCEDURE "dbo"."sp_llenar_servicios"
+( 
+@as_codemp varchar(2)
+)
+AS 
+BEGIN 
+delete from tbl_consumo_zonas
+
+insert into tbl_consumo_zonas
+(
+select codemp,'\'+codser,nomser,0 from serviciosvarios
+where
+codemp=@as_codemp 
+)
+
+insert into tbl_consumo_zonas
+(
+select codemp,codart,nomart,0 from articulos
+where
+codemp=@as_codemp 
+)
+
+end;
+
+
+
+
+CREATE PROCEDURE "dbo"."sp_recaudacion_individual_rep"
+( 
+@as_codemp varchar(2),
+@as_nomcomercial varchar(100),
+@as_fecdesde varchar(10),
+@as_fechasta varchar (10),
+@as_codcla varchar (10),
+@as_codser varchar (60),
+@as_zona varchar (60),
+@as_servicio varchar (100)
+)
+AS
+BEGIN
+select 
+(
+Case When (c.codcli>0 and c.codcli<=9)  Then '00'+c.codcli 
+else 
+Case When (c.codcli>=10 and c.codcli<=99)  Then '00'+c.codcli
+else 
+'0'+c.codcli
+End
+end
+)
+as Codigo,c.nomcli Nombre,r.nomart as Detalle,r.totren as Valor
+from clientes c,encabezadofacturas e , renglonesfacturas r
+where
+c.codemp=e.codemp and
+c.codcli=e.codcli and
+e.codemp=r.codemp and
+e.numfac=r.numfac and
+(r.fecfac>=convert(date,@as_fecdesde,103) and r.fecfac<=convert(date,@as_fechasta,103)) and
+r.codemp=@as_codemp and c.codcla=@as_codcla and r.codart=@as_codser
+and e.estado<>'A' order by codigo asc
+
+end;
+
+
+
+CREATE PROCEDURE "dbo"."sp_planillas_no_facturadas_zona_servicios_rep"
+( 
+@as_codemp varchar(2),
+@as_nomcomercial varchar(100),
+@as_fecdesde varchar(10),
+@as_fechasta varchar (10),
+@as_codcla varchar (10),
+@as_nomcla varchar (60),
+@as_codser varchar (10),
+@as_nomser varchar (60)
+)
+AS
+BEGIN
+
+select e.numfac as numfac,e.fecfac as fecfac,e.codcli as codcli,
+e.nomcli as nomcli,r.nomart as nombre,r.totren as totfac FROM clientes c,encabezadonotasventa e,
+renglonesnotasventa r
+ where
+c.codemp=e.codemp and 
+c.codcli=e.codcli and
+e.codemp=r.codemp and
+e.numfac=r.numfac and
+(e.fecfac>=convert(date, '01-01-0001' , 103) 
+and e.fecfac<=convert(date, @as_fechasta, 103)) and e.codemp=@as_codemp
+and c.codcla=@as_codcla and e.estado='P'
+and r.codart=@as_codser
+and (e.numtra is null or e.numtra='') and r.totren>0
+order by e.codcli asc
+
+
+
+end;
+
+
+
+CREATE PROCEDURE "dbo"."sp_socios_firma_rep"
+( 
+@as_codemp varchar(2),
+@as_nomcomercial varchar(100),
+@as_codcla varchar (10),
+@as_nomca varchar (100),
+@as_meslectura varchar(100)
+)
+AS
+BEGIN
+SELECT codcli as CODIGO,rucced as CEDULA, nomcli AS SOCIO, dircli as DIRECCION, telcli as TELEFONO
+FROM clientes where codemp=@as_codemp and codcla=@as_codcla order by codcli asc
+END

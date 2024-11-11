@@ -1,0 +1,366 @@
+
+create PROCEDURE "dbo"."sp_mantenimiento_tbl_secciones"
+( 
+@as_codsec varchar(15),
+@as_descripcion varchar(100),
+@as_codcla varchar(50),
+@as_codemp varchar(10),
+@as_iden varchar(10)
+)
+AS 
+BEGIN 
+if @as_iden='I'
+insert into tbl_secciones values
+(@as_codemp,@as_codsec,@as_descripcion,@as_codcla)
+
+if @as_iden='M'
+update tbl_secciones
+set nomsec=@as_descripcion,codcla=@as_codcla
+where codemp=@as_codemp and codsec=@as_codsec
+
+if @as_iden='E'
+delete from  tbl_secciones
+where codemp=@as_codemp and codsec=@as_codsec
+end;
+
+
+create PROCEDURE "dbo"."sp_mantenimiento_tbl_responsable_produccion"
+( 
+@as_codemp varchar(10),
+@as_codpro varchar(50),
+@as_nompro varchar(100),
+@as_codsec varchar(15),
+@as_numfac varchar(50),
+@as_precibidas decimal(15,4),
+@as_pentregadas decimal(15,4),
+@as_iden varchar(10)
+)
+AS 
+BEGIN 
+if @as_iden='I'
+insert into tbl_responsable_produccion values
+(@as_codemp,@as_codpro,@as_nompro,@as_codsec,@as_numfac,0,0)
+
+if @as_iden='M'
+update tbl_responsable_produccion 
+set precibidas=@as_precibidas
+where codemp=@as_codemp and codpro=@as_codpro and codsec=@as_codsec and numfac=@as_numfac
+
+if @as_iden='E'
+delete from tbl_responsable_produccion 
+where codemp=@as_codemp and codpro=@as_codpro and codsec=@as_codsec and numfac=@as_numfac
+
+
+end;
+update empresa set resolucion= '.'
+create PROCEDURE "dbo"."sp_mantenimiento_tbl_secciones_produccion"
+( 
+@as_codemp varchar(10),
+@as_codsec varchar(15),
+@as_numfac varchar(50),
+@as_nomsec varchar(100),
+@as_totalprendas decimal(15,4),
+@as_iden varchar(10)
+)
+AS 
+BEGIN 
+if @as_iden='I'
+insert into tbl_secciones_produccion
+(select @as_codemp,codsec,@as_numfac,nomsec,0,codcla from tbl_secciones where codemp=@as_codemp)
+
+update tbl_secciones_produccion set totalprendas=@as_totalprendas where codemp=@as_codemp and numfac=@as_numfac
+and codsec=@as_codsec
+
+
+end;
+
+
+create PROCEDURE "dbo"."sp_mantenimiento_seguimiento_produccion"
+( 
+@as_codemp varchar(10),
+@as_numfac varchar(50),
+@as_iden varchar(10)
+)
+AS 
+BEGIN 
+if @as_iden='E'
+
+delete from tbl_secciones_produccion where codemp=@as_codemp and numfac=@as_numfac
+
+delete from tbl_responsable_produccion where codemp=@as_codemp and numfac=@as_numfac
+delete from tbl_kardexproduccion where codemp=@as_codemp and numfac=@as_numfac
+delete from tbl_movimientos_pago_prov where codemp=@as_codemp and numfac=@as_numfac
+end;
+
+
+
+create  PROCEDURE "dbo"."sp_mantenimiento_transferir1"
+( 
+	@as_codemp VARCHAR(5) ,
+    @as_numkardex VARCHAR(10),
+	@as_numfac VARCHAR(10),
+	@as_feckardex date ,
+    @as_cantid DECIMAL(15,4),
+    @as_actmovimiento VARCHAR(10),
+    @as_comentario VARCHAR(300),
+    @as_nomart VARCHAR(100),
+    @as_codprodestino VARCHAR(100),
+    @as_codproorigen VARCHAR(100),
+    @as_nomproorigen VARCHAR(100),
+    @as_nomprodestino VARCHAR(100),
+    @as_codsecorigen VARCHAR(10),
+    @as_codsecdestino VARCHAR(10),
+    @as_totalseccion DECIMAL(15,4),
+    @as_articulosporentregar DECIMAL(15,4)
+
+)
+AS 
+BEGIN
+  // si es diferente el codsecorigen con el codsecdestino
+update tbl_secciones_produccion set 
+totalprendas= @as_articulosporentregar - @as_cantid
+where codemp=@as_codemp and 
+numfac=@as_numfac and 
+codsec= @as_codsecorigen // cdosec origen
+
+         
+update tbl_secciones_produccion set
+ totalprendas= totalprendas + @as_cantid
+where codemp=@as_codemp and 
+numfac=@as_numfac and 
+codsec=@as_codsecdestino//codsec destino
+
+end ;
+
+create  PROCEDURE "dbo"."sp_mantenimiento_transferir"
+( 
+	@as_codemp VARCHAR(5) ,
+    @as_numkardex VARCHAR(10),
+	@as_numfac VARCHAR(10),
+	@as_feckardex date ,
+    @as_cantid DECIMAL(15,4),
+    @as_actmovimiento VARCHAR(10),
+    @as_comentario VARCHAR(300),
+    @as_nomart VARCHAR(100),
+    @as_codprodestino VARCHAR(100),
+    @as_codproorigen VARCHAR(100),
+    @as_nomproorigen VARCHAR(100),
+    @as_nomprodestino VARCHAR(100),
+    @as_codsecorigen VARCHAR(10),
+    @as_codsecdestino VARCHAR(10),
+    @as_totalseccion DECIMAL(15,4),
+    @as_articulosporentregar DECIMAL(15,4)
+
+)
+AS 
+BEGIN
+
+
+update tbl_responsable_produccion
+ set
+ precibidas=  precibidas + @as_cantid
+where 
+codemp=@as_codemp and
+ numfac=@as_numfac and 
+codsec=@as_codsecdestino and 
+codpro=  @as_codprodestino
+
+
+update tbl_responsable_produccion set 
+precibidas= precibidas -   @as_cantid
+where 
+codemp=@as_codemp and 
+numfac=@as_numfac and 
+codsec=@as_codsecorigen and 
+codpro= @as_codproorigen
+
+
+
+                // ingreso kardex
+insert into tbl_kardexproduccion values 
+(
+@as_codemp,
+@as_numkardex,
+@as_numfac,
+'EN',
+@as_feckardex,
+@as_codprodestino,
+@as_nomprodestino,
+@as_cantid,
+@as_actmovimiento,
+@as_comentario,
+@as_nomart ,
+@as_codproorigen ,
+@as_nomproorigen
+ )
+
+insert into  tbl_kardexproduccion values 
+(
+@as_codemp,
+@as_numkardex,
+@as_numfac,
+'SA',
+@as_feckardex,
+@as_codproorigen ,
+@as_nomproorigen,
+@as_cantid* (-1),
+'NO',
+@as_comentario,
+@as_nomart ,
+@as_codprodestino,
+@as_nomprodestino
+)                                                                                                                                                                                               
+
+               
+end;
+
+
+create  PROCEDURE "dbo"."sp_mantenimiento_kardex_inicial"
+( 
+	@as_codemp VARCHAR(5) ,
+	@as_nomemp VARCHAR(100),
+    @as_numkardex VARCHAR(10),
+	@as_numfac VARCHAR(10),
+	@as_fecemi date ,
+    @as_cantid DECIMAL(15,4),
+    @as_nomart VARCHAR(100),
+    @as_codprodestino VARCHAR(100),
+    @as_nomprodestino VARCHAR(100)
+   
+)
+AS 
+BEGIN
+
+
+                // ingreso kardex INICIAL
+insert into tbl_kardexproduccion values 
+(
+@as_codemp,
+@as_numkardex,
+@as_numfac,
+'EN',
+@as_fecemi,
+@as_codprodestino,
+@as_nomprodestino,
+@as_cantid,
+'NO',
+'INGRESO INICIAL',
+@as_nomart ,
+@as_codprodestino,
+@as_nomemp
+ )
+                                                                                                                                                                          
+             
+end;
+
+
+CREATE  PROCEDURE "dbo"."sp_mantenimiento_tbl_movimientos_pago_prov"
+( 
+@as_codemp  VARCHAR(5),
+@as_numpago VARCHAR(20),
+@as_numfac  VARCHAR(50),
+@as_codprov VARCHAR(20),
+@as_codsec  VARCHAR(10),
+@as_fecpago date,
+@as_numfacprov VARCHAR(50),
+@as_valor DECIMAL(15,4),
+@as_comentario VARCHAR(300),
+@as_numprendas DECIMAL(15,4),
+@as_precio DECIMAL(15,4),
+@as_cantid01 DECIMAL(15,4),
+@as_cantid02 DECIMAL(15,4),
+@as_cantid03 DECIMAL(15,4),
+@as_prec01 DECIMAL(15,4),
+@as_prec02 DECIMAL(15,4),
+@as_prec03 DECIMAL(15,4),
+@as_tot01 DECIMAL(15,4),
+@as_tot02 DECIMAL(15,4),
+@as_tot03 DECIMAL(15,4),
+@as_total DECIMAL(15,4),
+@as_comen01 VARCHAR(300),
+@as_comen02 VARCHAR(300),
+@as_comen03 VARCHAR(300),
+@as_fpago VARCHAR(300)
+	
+)
+as
+begin
+insert into tbl_movimientos_pago_prov
+values
+(
+@as_codemp,
+@as_numpago,
+@as_numfac,
+@as_codprov,
+@as_codsec,
+@as_fecpago,
+@as_numfacprov,
+@as_valor,
+@as_comentario,
+@as_numprendas,
+@as_precio,
+@as_cantid01,
+@as_cantid02,
+@as_cantid03,
+@as_prec01,
+@as_prec02,
+@as_prec03,
+@as_tot01,
+@as_tot02,
+@as_tot03,
+@as_total,
+@as_comen01,
+@as_comen02,
+@as_comen03,
+@as_fpago
+)
+
+update tbl_responsable_produccion set pentregadas=pentregadas+ @as_valor 
+where codemp=@as_codemp and 
+numfac=@as_numfac and 
+codsec=@as_codsec and 
+codpro= @as_codprov
+end;
+
+
+
+
+
+create  PROCEDURE "dbo"."sp_eliminar_tbl_movimientos_pago_prov"
+( 
+@as_codemp  VARCHAR(5),
+@as_numpago VARCHAR(20),
+@as_numfac  VARCHAR(50),
+@as_codprov VARCHAR(20),
+@as_codsec  VARCHAR(10),
+@as_valor DECIMAL(15,4)
+	
+)
+as
+begin
+
+delete from tbl_movimientos_pago_prov where codemp=@as_codemp and numpago=@as_numpago
+
+update tbl_responsable_produccion set pentregadas= pentregadas - @as_valor 
+where codemp=@as_codemp and 
+numfac=@as_numfac and 
+codsec=@as_codsec and 
+codpro= @as_codprov
+end;
+
+
+create  PROCEDURE "dbo"."sp_egreso_rollos"
+( 
+@as_codemp  VARCHAR(5),
+@as_numfac  VARCHAR(50),
+@as_codart VARCHAR(50)
+	
+)
+as
+begin
+
+update articulos_r set  estado='P', 
+numord=@as_numfac  where 
+codemp=@as_codemp and 
+codart=@as_codart
+end;

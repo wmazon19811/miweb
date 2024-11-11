@@ -1,0 +1,1052 @@
+CREATE TABLE "dbo"."tbo_totales_articulo_procedimiento" (
+	"codemp" VARCHAR(5) NOT NULL,
+	"codigo" VARCHAR(50) NOT NULL,
+	"numord" VARCHAR(15) NOT NULL,
+	"totalprendas" DECIMAL(15,4) NULL,
+	"totalpeso" DECIMAL(15,4) NULL,
+	"totalegreso" DECIMAL(15,4) NULL,
+	PRIMARY KEY ( "codemp" ASC, "codigo" ASC, "numord" ASC )
+) IN "system";
+
+
+CREATE TABLE "dbo"."tbl_asigna_articulos_procedimientos" (
+	"codemp" VARCHAR(10) NOT NULL,
+	"codart" VARCHAR(100) NOT NULL,
+	"codprocedimiento" VARCHAR(21) NOT NULL,
+	"nombreprocedimiento" VARCHAR(200) NULL,
+	"nomart" VARCHAR(200) NULL,
+	"codcodartcodprocedimiento" VARCHAR(100) NULL,
+	PRIMARY KEY ( "codemp" ASC, "codart" ASC, "codprocedimiento" ASC )
+) IN "system";
+
+
+CREATE TABLE "dbo"."tbl_temp_formulas_proceso" (
+	"codproceso" VARCHAR(15) NOT NULL,
+	"codprocesamiento" VARCHAR(15) NOT NULL,
+	"codart" VARCHAR(60) NOT NULL,
+	"codorden" VARCHAR(7) NOT NULL,
+	"r_b" DECIMAL(15,4) NULL,
+	"cantid_agua" DECIMAL(15,4) NULL,
+	"temperatura_p" DECIMAL(15,4) NULL,
+	"tiempo_p" DECIMAL(15,4) NULL,
+	"porcentaje" DECIMAL(15,5) NULL,
+	"temperatura_f" DECIMAL(15,4) NULL,
+	"tiempo_f" DECIMAL(15,4) NULL,
+	"descripcion_proceso" VARCHAR(100) NULL,
+	"descripcion_procesamiento" VARCHAR(100) NULL,
+	"descripcion_articulo" VARCHAR(100) NULL,
+	"medida_egreso" VARCHAR(5) NULL,
+	"codemp" VARCHAR(5) NOT NULL,
+	"cantid_enjuague" DECIMAL(15,0) NULL,
+	"orden_proced" VARCHAR(50) NULL,
+	"codtemp" VARCHAR(15) NOT NULL	,
+	 "cantid_egreso"	DECIMAL(15,4) NULL,
+	"costo_articulo"	DECIMAL(15,4) NULL
+	 )
+ IN "system";
+
+create PROCEDURE "dbo"."sp_mantenimiento_procesos"
+( 
+@as_codemp varchar(10),
+@as_codpro varchar(15),
+@as_descripcion varchar(100),
+@as_activo varchar(10),
+@as_iden varchar(10)
+)
+AS 
+BEGIN 
+if @as_iden='I'
+insert into tbl_procesos_formulacion values(@as_codpro,@as_descripcion,@as_activo,@as_codemp)
+
+if @as_iden='M'
+update tbl_procesos_formulacion set descripcion=@as_descripcion,activo=@as_activo 
+where codemp=@as_codemp and codpro=@as_codpro
+
+if @as_iden='E'
+delete from  tbl_procesos_formulacion
+where codemp=@as_codemp and codpro=@as_codpro
+
+end;
+
+create PROCEDURE "dbo"."sp_mantenimiento_tbl_procedimiento_formulacion"
+( 
+
+@as_codpro varchar(15),
+@as_descripcion varchar(100),
+@as_relacion_bano DECIMAL(15,4),
+@as_cantid_agua DECIMAL(15,4),
+@as_temperatura DECIMAL(15,4),
+@as_tiempo DECIMAL(15,4),
+@as_activo varchar(3),
+@as_codemp varchar(10),
+@as_iden varchar(10)
+)
+AS 
+BEGIN 
+if @as_iden='I'
+insert into tbl_procedimiento_formulacion values
+(@as_codpro,@as_descripcion,@as_relacion_bano,@as_cantid_agua,@as_temperatura,@as_tiempo,@as_activo,@as_codemp)
+
+if @as_iden='M'
+update tbl_procedimiento_formulacion 
+set descripcion=@as_descripcion,relacion_bano=@as_relacion_bano,cantid_agua=@as_cantid_agua,temperatura=@as_temperatura,tiempo=@as_tiempo,activo=@as_activo 
+where codemp=@as_codemp and codpro=@as_codpro
+
+if @as_iden='E'
+delete from  tbl_procedimiento_formulacion
+where codemp=@as_codemp and codpro=@as_codpro
+
+end;
+
+
+
+create PROCEDURE "dbo"."sp_mantenimiento_tbl_unidad_formulacion"
+( 
+@as_coduni varchar(15),
+@as_descripcion varchar(100),
+@as_formular varchar(50),
+@as_codemp varchar(10),
+@as_iden varchar(10)
+)
+AS 
+BEGIN 
+if @as_iden='I'
+insert into tbl_unidad_formulacion values
+(@as_coduni,@as_descripcion,@as_formular,@as_codemp)
+
+if @as_iden='M'
+update tbl_unidad_formulacion 
+set descripcion=@as_descripcion,formular=@as_formular 
+where codemp=@as_codemp and coduni=@as_coduni
+
+if @as_iden='E'
+delete from  tbl_unidad_formulacion
+where codemp=@as_codemp and coduni=@as_coduni
+end;
+
+
+create PROCEDURE "dbo"."sp_mantenimiento_tbl_formulas_proceso"
+( 
+	@as_codproceso VARCHAR(15) ,
+	@as_codprocesamiento VARCHAR(15) ,
+	@as_codart VARCHAR(60),
+	@as_codorden VARCHAR(7) ,
+	@as_r_b DECIMAL(15,4) ,
+	@as_cantid_agua DECIMAL(15,4) ,
+	@as_temperatura_p DECIMAL(15,4),
+	@as_tiempo_p DECIMAL(15,4),
+	@as_porcentaje DECIMAL(15,5) ,
+	@as_temperatura_f DECIMAL(15,4) ,
+	@as_tiempo_f DECIMAL(15,4),
+	@as_descripcion_proceso VARCHAR(100),
+	@as_descripcion_procesamiento VARCHAR(100),
+	@as_descripcion_articulo VARCHAR(100),
+	@as_medida_egreso VARCHAR(5),
+	@as_codemp VARCHAR(5),
+	@as_cantid_enjuague DECIMAL(15,0),
+	@as_orden_proced VARCHAR(50),
+	@as_iden varchar(10)
+)
+AS 
+BEGIN 
+if @as_iden='I'
+insert into tbl_formulas_proceso values
+(
+	@as_codproceso,
+	@as_codprocesamiento,
+	@as_codart,
+	@as_codorden,
+	@as_r_b ,
+	@as_cantid_agua,
+	@as_temperatura_p,
+	@as_tiempo_p ,
+	@as_porcentaje,
+	@as_temperatura_f ,
+	@as_tiempo_f,
+	@as_descripcion_proceso,
+	@as_descripcion_procesamiento,
+	@as_descripcion_articulo,
+	@as_medida_egreso,
+	@as_codemp,
+	@as_cantid_enjuague,
+	@as_orden_proced
+)
+
+if @as_iden='M'
+update tbl_formulas_proceso
+set 
+	codprocesamiento=@as_codprocesamiento,
+	codart=@as_codart,
+	r_b=@as_r_b ,
+	cantid_agua=@as_cantid_agua,
+	temperatura_p=@as_temperatura_p,
+	tiempo_p=@as_tiempo_p ,
+	porcentaje=@as_porcentaje,
+	temperatura_f=@as_temperatura_f ,
+	tiempo_f=@as_tiempo_f,
+	descripcion_proceso=@as_descripcion_proceso,
+	descripcion_procesamiento=@as_descripcion_procesamiento,
+	descripcion_articulo=@as_descripcion_articulo,
+	medida_egreso=@as_medida_egreso,
+	cantid_enjuague=@as_cantid_enjuague,
+	orden_proced=@as_orden_proced
+	where codemp=@as_codemp and codproceso=@as_codproceso and codorden=@as_codorden
+
+if @as_iden='E'
+delete from  tbl_formulas_proceso
+where codemp=@as_codemp and codproceso=@as_codproceso and codorden=@as_codorden
+end;
+
+
+
+create PROCEDURE "dbo"."sp_mantenimiento_duplicar_formulas"
+( 
+	@as_codprocesoorigen VARCHAR(15) ,
+	@as_codprocesodestino VARCHAR(15) ,
+	@as_codemp VARCHAR(5)
+)
+AS 
+BEGIN 
+insert into tbl_formulas_proceso 
+(	
+	select 
+	@as_codprocesodestino,
+	codprocesamiento,
+	codart,
+	codorden,
+	r_b ,
+	cantid_agua,
+	temperatura_p,
+	tiempo_p ,
+	porcentaje,
+	temperatura_f ,
+	tiempo_f,
+	descripcion_proceso,
+	descripcion_procesamiento,
+	descripcion_articulo,
+	medida_egreso,
+	@as_codemp,
+	cantid_enjuague,
+	orden_proced
+	from tbl_formulas_proceso 
+	where codemp=@as_codemp and codproceso=@as_codprocesoorigen
+)
+
+end;
+
+
+
+
+
+
+
+
+create PROCEDURE "dbo"."sp_mantenimiento_tbl_tmp_formulas_proceso"
+( 
+	@as_codproceso VARCHAR(15) ,
+	@as_codprocesamiento VARCHAR(15) ,
+	@as_codart VARCHAR(60),
+	@as_codorden VARCHAR(7) ,
+	@as_r_b DECIMAL(15,4) ,
+	@as_cantid_agua DECIMAL(15,4) ,
+	@as_temperatura_p DECIMAL(15,4),
+	@as_tiempo_p DECIMAL(15,4),
+	@as_porcentaje DECIMAL(15,5) ,
+	@as_temperatura_f DECIMAL(15,4) ,
+	@as_tiempo_f DECIMAL(15,4),
+	@as_descripcion_proceso VARCHAR(100),
+	@as_descripcion_procesamiento VARCHAR(100),
+	@as_descripcion_articulo VARCHAR(100),
+	@as_medida_egreso VARCHAR(5),
+	@as_codemp VARCHAR(5),
+	@as_cantid_enjuague DECIMAL(15,0),
+	@as_orden_proced VARCHAR(50),
+	@as_iden varchar(10),
+	@as_codtemp varchar(15),
+	@as_egreso_gr DECIMAL(15,4),
+	@as_costo_articulo DECIMAL(15,4)
+)
+AS 
+BEGIN 
+if @as_iden='I'
+insert into tbl_temp_formulas_proceso values
+(
+	@as_codproceso,
+	@as_codprocesamiento,
+	@as_codart,
+	@as_codorden,
+	@as_r_b ,
+	@as_cantid_agua,
+	@as_temperatura_p,
+	@as_tiempo_p ,
+	@as_porcentaje,
+	@as_temperatura_f ,
+	@as_tiempo_f,
+	@as_descripcion_proceso,
+	@as_descripcion_procesamiento,
+	@as_descripcion_articulo,
+	@as_medida_egreso,
+	@as_codemp,
+	@as_cantid_enjuague,
+	@as_orden_proced,
+	@as_codtemp,
+	0,
+	0
+)
+
+if @as_iden='M'
+update tbl_temp_formulas_proceso
+set 
+	codprocesamiento=@as_codprocesamiento,
+	codart=@as_codart,
+	r_b=@as_r_b ,
+	cantid_agua=@as_cantid_agua,
+	temperatura_p=@as_temperatura_p,
+	tiempo_p=@as_tiempo_p ,
+	porcentaje=@as_porcentaje,
+	temperatura_f=@as_temperatura_f ,
+	tiempo_f=@as_tiempo_f,
+	descripcion_proceso=@as_descripcion_proceso,
+	descripcion_procesamiento=@as_descripcion_procesamiento,
+	descripcion_articulo=@as_descripcion_articulo,
+	medida_egreso=@as_medida_egreso,
+	cantid_enjuague=@as_cantid_enjuague,
+	orden_proced=@as_orden_proced
+	where codemp=@as_codemp and codproceso=@as_codproceso and codorden=@as_codorden and codtemp=@as_codtemp
+
+if @as_iden='E'
+delete from  tbl_temp_formulas_proceso
+where codemp=@as_codemp and codproceso=@as_codproceso and codorden=@as_codorden and codtemp=@as_codtemp
+
+
+
+if @as_iden='IT'
+insert into tbl_temp_formulas_proceso
+(
+	select 
+	codproceso,
+	codprocesamiento,
+	codart,
+	codorden,
+	r_b ,
+	cantid_agua,
+	temperatura_p,
+	tiempo_p ,
+	porcentaje,
+	temperatura_f ,
+	tiempo_f,
+	descripcion_proceso,
+	descripcion_procesamiento,
+	descripcion_articulo,
+	medida_egreso,
+	@as_codemp,
+	cantid_enjuague,
+	orden_proced,
+	@as_codtemp,
+	0,
+	0
+	from tbl_formulas_proceso
+	where codemp=@as_codemp and codproceso=@as_codproceso
+)
+
+if @as_iden='ET'
+delete from  tbl_temp_formulas_proceso
+where codemp=@as_codemp and codtemp=@as_codtemp
+
+
+end;
+
+
+
+create PROCEDURE "dbo"."sp_mantenimiento_insertar_tbl_orden_produccion"
+( 
+	@as_codemp VARCHAR(5) ,
+	@as_numord VARCHAR(10),
+	@as_fecord date ,
+	@as_codproceso VARCHAR(18) ,
+	@as_descripcion VARCHAR(50),
+	@as_cantid_kilos DECIMAL(15,4) ,
+	@as_maquina VARCHAR(10),
+	@as_comentario VARCHAR(100),
+	@as_codcli VARCHAR(10) ,
+	@as_nomcli VARCHAR(100),
+	@as_rucced VARCHAR(15) ,
+	@as_numprendas DECIMAL(15,4) ,
+	@as_numingreso VARCHAR(25) ,
+	@as_descargado VARCHAR(2),
+	@as_totiva DECIMAL(15,4),
+	@as_excen DECIMAL(15,4),
+	@as_totfac DECIMAL(15,4),
+	@as_numtandas INTEGER ,
+	@as_reproceso VARCHAR(1) ,
+	@as_codtemp VARCHAR(15)
+)
+AS 
+BEGIN 
+
+insert into tbl_ord_prod_formulacion values
+(
+	@as_codemp,
+	@as_numord,
+	@as_fecord,
+	@as_codproceso,
+	@as_descripcion,
+	@as_cantid_kilos,
+	@as_maquina,
+	@as_comentario,
+	@as_codcli,
+	@as_nomcli,
+	@as_rucced,
+	@as_numprendas,
+	@as_numingreso,
+	@as_descargado,
+	@as_totiva,
+	@as_excen,
+	@as_totfac,
+	@as_numtandas ,
+	@as_reproceso,
+	0
+)
+
+//en el campo tiempo_f estoy poniendo @as_cantid_kilos para hacer el calculo desde el procedimiento
+//en el campo temperatura f estoy poniendo @as_numprendas para hacer el calculo desde el procedimiento
+//en el campo codcolor estoy poniendo @as_codcli para la kardex
+insert into tbl_detalle_ord_prod_fumulacion 
+(
+   SELECT 
+    codproceso ,codprocesamiento ,codart ,codorden ,r_b ,cantid_agua ,temperatura_p,tiempo_p,porcentaje,@as_numprendas,@as_cantid_kilos,
+	descripcion_proceso,descripcion_procesamiento,descripcion_articulo,medida_egreso,
+	codemp,@as_numord,0,0,@as_fecord,cantid_enjuague,0,number(*),0,'',@as_codcli,'','',orden_proced,0,''
+    from tbl_temp_formulas_proceso 
+	where codtemp=@as_codtemp and codemp=@as_codemp
+	order by codorden asc
+)
+delete from tbl_temp_formulas_proceso where codtemp=@as_codtemp and codemp=@as_codemp
+end;
+
+
+create PROCEDURE "dbo"."sp_mantenimiento_actualizar_tbl_temp_formulas_proceso"
+( 
+	@as_codemp VARCHAR(5) ,
+	@as_numord VARCHAR(10),
+	@as_codtemp VARCHAR(15) 
+)
+AS 
+BEGIN 
+insert into tbl_temp_formulas_proceso
+(
+	select 
+	codproceso,
+	codprocesamiento,
+	codart,
+	codorden,
+	r_b ,
+	cantid_agua,
+	temperatura_p,
+	tiempo_p ,
+	porcentaje,
+	temperatura_f ,
+	tiempo_f,
+	descripcion_proceso,
+	descripcion_procesamiento,
+	descripcion_articulo,
+	medida_egreso,
+	codemp,
+	cantid_enjuague,
+	orden_proced,
+	@as_codtemp,
+	0,
+	0
+	from tbl_detalle_ord_prod_fumulacion
+	where codemp=@as_codemp and numord=@as_numord
+	order by codorden asc
+)
+
+end;
+
+
+create PROCEDURE "dbo"."sp_mantenimiento_actualizar_tbl_orden_produccion"
+( 
+	@as_codemp VARCHAR(5) ,
+	@as_numord VARCHAR(10),
+	@as_fecord date ,
+	@as_codproceso VARCHAR(18) ,
+	@as_descripcion VARCHAR(50),
+	@as_cantid_kilos DECIMAL(15,4) ,
+	@as_maquina VARCHAR(10),
+	@as_comentario VARCHAR(100),
+	@as_codcli VARCHAR(10) ,
+	@as_nomcli VARCHAR(100),
+	@as_rucced VARCHAR(15) ,
+	@as_numprendas DECIMAL(15,4) ,
+	@as_numingreso VARCHAR(25) ,
+	@as_descargado VARCHAR(2),
+	@as_totiva DECIMAL(15,4),
+	@as_excen DECIMAL(15,4),
+	@as_totfac DECIMAL(15,4),
+	@as_numtandas INTEGER ,
+	@as_reproceso VARCHAR(1) ,
+	@as_codtemp VARCHAR(15) 
+)
+AS 
+BEGIN 
+
+update  tbl_ord_prod_formulacion set
+	
+	fecord=@as_fecord,
+	cantid_kilos=@as_cantid_kilos,
+	maquina=@as_maquina,
+	comentario=@as_comentario,
+	codcli=@as_codcli,
+	nomcli=@as_nomcli,
+	rucced=@as_rucced,
+	numprendas=@as_numprendas,
+	numingreso=@as_numingreso,
+	descargado=@as_descargado,
+	totiva=@as_totiva,
+	excen=@as_excen,
+	totfac=@as_totfac,
+	numtandas=@as_numtandas ,
+	reproceso=@as_reproceso, 
+    basea=0   
+where codemp=@as_codemp and numord=@as_numord
+
+update articulos
+set exiact=exiact + tablaagregada.campoagregado
+from  articulos t1,
+(select codart,sum(cantid_egr) as campoagregado from tbl_detalle_ord_prod_fumulacion
+where codemp=@as_codemp and numord=@as_numord
+group by codart
+)tablaagregada
+where t1.codart=tablaagregada.codart and
+      t1.codemp=@as_codemp
+
+delete from kardex
+where codemp=@as_codemp and numdoc=@as_numord and tiporg='EGR'
+
+delete from renglonesegresos
+where codemp=@as_codemp and numfac=@as_numord
+
+delete from encabezadoegresos
+where codemp=@as_codemp and numfac=@as_numord 
+
+
+
+delete from tbl_detalle_ord_prod_fumulacion where codemp=@as_codemp and numord=@as_numord
+
+//en el campo tiempo_f estoy poniendo @as_cantid_kilos para hacer el calculo desde el procedimiento
+
+insert into tbl_detalle_ord_prod_fumulacion 
+(
+   SELECT 
+    codproceso ,codprocesamiento ,codart ,codorden ,r_b ,cantid_agua ,temperatura_p,tiempo_p,porcentaje,@as_numprendas,@as_cantid_kilos,
+	descripcion_proceso,descripcion_procesamiento,descripcion_articulo,medida_egreso,
+	codemp,@as_numord,0,0,@as_fecord,cantid_enjuague,0,number(*),0,'',@as_codcli,'','',orden_proced,0,''
+    from tbl_temp_formulas_proceso 
+	where codtemp=@as_codtemp and codemp=@as_codemp
+	order by codorden asc
+)
+
+delete from tbl_temp_formulas_proceso where codtemp=@as_codtemp and codemp=@as_codemp
+end;
+
+
+create PROCEDURE "dbo"."sp_mantenimiento_eliminar_tbl_temp_formulas_proceso"
+( 
+	@as_codemp VARCHAR(5) ,
+	@as_codtemp VARCHAR(15) 
+)
+AS 
+BEGIN 
+
+delete from tbl_temp_formulas_proceso where codtemp=@as_codtemp and codemp=@as_codemp
+end;
+
+
+create PROCEDURE "dbo"."sp_mantenimiento_eliminar_tbl_ord_prod_formulacion"
+( 
+	@as_codemp VARCHAR(5) ,
+	@as_numord VARCHAR(15) 
+)
+AS 
+BEGIN 
+
+delete from tbl_ord_prod_formulacion where numord=@as_numord and codemp=@as_codemp
+delete from tbl_detalle_ord_prod_fumulacion  where numord=@as_numord and codemp=@as_codemp
+
+
+delete from renglonesegresos
+where codemp=@as_codemp and numfac=@as_numord
+
+delete from encabezadoegresos
+where codemp=@as_codemp and numfac=@as_numord 
+
+end;
+
+
+create PROCEDURE "dbo"."sp_calcular_renglones_tbl_detalle_ord_prod_fumulacion"
+( 
+	@as_codemp VARCHAR(5) ,
+	@as_numord VARCHAR(15) 
+)
+AS 
+BEGIN 
+
+update tbl_detalle_ord_prod_fumulacion
+set cantid_resul=tiempo_f * porcentaje * r_b, cantid_egr=(tiempo_f * porcentaje * r_b)/1000
+where medida_egreso='GR/LT' and codemp=@as_codemp and numord=@as_numord
+
+update tbl_detalle_ord_prod_fumulacion
+set cantid_resul=tiempo_f * porcentaje * 10, cantid_egr=(tiempo_f * porcentaje * 10)/1000
+where medida_egreso='GR' and codemp=@as_codemp and numord=@as_numord
+
+
+update tbl_detalle_ord_prod_fumulacion
+set cantid_resul=tiempo_f * porcentaje * r_b, cantid_egr=tiempo_f * porcentaje * r_b
+where medida_egreso='LT' and codemp=@as_codemp and numord=@as_numord
+
+
+update tbl_detalle_ord_prod_fumulacion
+set cantid_resul=temperatura_f * porcentaje, cantid_egr=temperatura_f * porcentaje
+where medida_egreso='PREN' and codemp=@as_codemp and numord=@as_numord
+
+//EMPATAMOS LOS CAMPOS DE LOS ARTICULOS EN LA TABLE DE DETALLE  DE ORDENES DE PRODUCCION
+update tbl_detalle_ord_prod_fumulacion
+set codcla=tablaagregada.campoagregado
+from  tbl_detalle_ord_prod_fumulacion t1,
+(select  codart,codcla as campoagregado from articulos where codemp=@as_codemp
+)tablaagregada
+where t1.codart=tablaagregada.codart and
+      t1.numord=@as_numord and
+       t1.codemp=@as_codemp 
+
+
+
+update tbl_detalle_ord_prod_fumulacion
+set codund=tablaagregada.campoagregado
+from  tbl_detalle_ord_prod_fumulacion t1,
+(select  codart,coduni as campoagregado from articulos where codemp=@as_codemp
+)tablaagregada
+where t1.codart=tablaagregada.codart and
+      t1.numord=@as_numord and
+       t1.codemp=@as_codemp 
+
+
+// cargamos los nuevos codigos de iva el porceiva y l codiva sri
+
+update tbl_detalle_ord_prod_fumulacion
+set codiva=tablaagregada.campoagregado
+from  tbl_detalle_ord_prod_fumulacion t1,
+(select  codart,codiva as campoagregado from articulos where codemp=@as_codemp
+)tablaagregada
+where t1.codart=tablaagregada.codart and
+      t1.numord=@as_numord and
+       t1.codemp=@as_codemp 
+
+update tbl_detalle_ord_prod_fumulacion
+set porceiva=tablaagregada.campoagregado
+from  tbl_detalle_ord_prod_fumulacion t1,
+(select  codiva,(poriva/100) as campoagregado from iva where codemp=@as_codemp 
+)tablaagregada
+where t1.codiva=tablaagregada.codiva and
+      t1.numord=@as_numord and
+       t1.codemp=@as_codemp 
+
+
+update tbl_detalle_ord_prod_fumulacion
+set codivasri=tablaagregada.campoagregado
+from  tbl_detalle_ord_prod_fumulacion t1,
+(select  codiva,codivasri as campoagregado from iva where codemp=@as_codemp
+)tablaagregada
+where t1.codiva=tablaagregada.codiva and
+      t1.numord=@as_numord and
+       t1.codemp=@as_codemp 
+
+
+// AUI SACAMOS LOS COSTO ALULTIMO COSTO
+update tbl_detalle_ord_prod_fumulacion
+set costo_unitario=tablaagregada.campoagregado
+from  tbl_detalle_ord_prod_fumulacion t1,
+(select  codart,ultcos as campoagregado from articulos where codemp=@as_codemp
+)tablaagregada
+where t1.codart=tablaagregada.codart and
+      t1.numord=@as_numord AND  
+         t1.codemp=@as_codemp 
+
+
+update tbl_detalle_ord_prod_fumulacion
+set
+costo_resul=cantid_egr * costo_unitario
+where codemp=@as_codemp and numord=@as_numord
+
+// llenamos el encabezado del total de la orden de produccion
+
+update tbl_ord_prod_formulacion
+set basea= tablaagregada.campoagregado
+from  tbl_ord_prod_formulacion t1,
+(
+select numord,sum(costo_resul) as campoagregado from tbl_detalle_ord_prod_fumulacion
+where codemp=@as_codemp and numord=@as_numord and codiva<>'0'
+group by numord
+)tablaagregada
+where t1.numord=tablaagregada.numord and
+      t1.codemp=@as_codemp
+
+
+update tbl_ord_prod_formulacion
+set excen= tablaagregada.campoagregado
+from  tbl_ord_prod_formulacion t1,
+(
+select numord,sum(costo_resul) as campoagregado from tbl_detalle_ord_prod_fumulacion
+where codemp=@as_codemp and numord=@as_numord and codiva='0'
+group by numord
+)tablaagregada
+where t1.numord=tablaagregada.numord and
+      t1.codemp=@as_codemp
+
+
+
+end;
+
+
+// ingreso a kardez y ingreso a egresos de bodega
+
+CREATE PROCEDURE "dbo"."sp_ingresa_kardex_tbl_detalle_ord_prod_fumulacion"
+( 
+	@as_codemp VARCHAR(5) ,
+	@as_numord VARCHAR(15) 
+)
+AS 
+BEGIN 
+delete from kardex
+where codemp=@as_codemp and numdoc=@as_numord and tiporg='EGR'
+insert into kardex
+(
+select codemp,'EGR',numord,codart,'SA',codemp,codund,fecord,cantid_egr,costo_unitario,costo_resul,
+costo_resul,codcolor as codcli,'00001','TEAMMICRO',fecord,NULL,1,item,'00:00:00.000',NULL,NULL,
+NULL,NULL,'0'+ codemp,NULL,NULL,NULL,NULL,NULL
+from tbl_detalle_ord_prod_fumulacion 
+where codemp=@as_codemp and numord=@as_numord
+)
+END;
+
+
+
+
+CREATE PROCEDURE "dbo"."sp_borra_kardex_tbl_ord_prod_fumulacion"
+( 
+	@as_codemp VARCHAR(5) ,
+	@as_numord VARCHAR(15) 
+)
+AS 
+BEGIN 
+delete from kardex
+where codemp=@as_codemp and numdoc=@as_numord and tiporg='EGR'
+
+END;
+
+
+// actualiza kardex microplus
+// ESTAMOS LISTOS
+CREATE PROCEDURE "dbo"."sp_actualiza_existencias"
+( 
+	@as_codemp VARCHAR(5) ,
+	@as_numord VARCHAR(15) 
+)
+AS 
+BEGIN 
+update articulos
+set exiact=exiact - tablaagregada.campoagregado
+from  articulos t1,
+(select codart,sum(cantid_egr) as campoagregado from tbl_detalle_ord_prod_fumulacion
+where codemp=@as_codemp and numord=@as_numord
+group by codart
+)tablaagregada
+where t1.codart=tablaagregada.codart and
+      t1.codemp=@as_codemp
+
+END;
+
+
+
+CREATE PROCEDURE "dbo"."sp_actualizar_kardex_tbl_detalle_ord_prod_fumulacion"
+( 
+	@as_codemp VARCHAR(5) ,
+	@as_numord VARCHAR(15) 
+)
+AS 
+BEGIN 
+
+insert into kardex
+(
+select codemp,'EGR',numord,codart,'SA',codemp,codund,fecord,cantid_egr,costo_unitario,costo_resul,
+costo_resul,codcolor as codcli,'00001','TEAMMICRO',fecord,NULL,1,item,'00:00:00.000',NULL,NULL,
+NULL,NULL,'0'+ codemp,NULL,NULL,NULL,NULL,NULL
+from tbl_detalle_ord_prod_fumulacion 
+where codemp=@as_codemp and numord=@as_numord
+)
+END;
+
+
+create PROCEDURE "dbo"."sp_ingresa_egreso_bodega_microplus"
+( 
+	@as_codemp VARCHAR(5) ,
+	@as_numord VARCHAR(15) 
+)
+AS 
+BEGIN 
+
+insert into encabezadoegresos
+(
+select tbl.codemp,tbl.numord,tbl.codcli,tbl.codemp,'00001',tbl.fecord,'P',NULL,'01',1,'TEAMMICRO',tbl.fecord,'E',NULL,
+NULL,tbl.nomcli,tbl.numord,null,null,null,'S',NULL,tbl.basea,null,null,null,'D',NULL,'',tbl.basea,tbl.excen,'0'+tbl.codemp,0,0,'P',
+NULL,NULL,NULL,NULL,NULL,cli.rucced,'N',NULL,NULL,NULL from tbl_ord_prod_formulacion tbl, clientes cli
+WHERE tbl.codemp=cli.codemp and tbl.codcli=cli.codcli
+        and tbl.codemp=@as_codemp and tbl.numord=@as_numord
+)
+
+
+insert into renglonesegresos
+(
+select codemp,numord,item,null,codart,descripcion_articulo,codund,cantid_egr,costo_unitario,0,costo_resul,
+'01',1,costo_resul,1,null,null,null,null,codiva,'00:00:00.000','N',NULL,NULL,NULL,
+(case when codiva<>'0' then costo_resul else 0 end),
+(case when codiva='0' then costo_resul else 0 end),
+codund,1,'S',codemp,codcolor,'TEAMMICRO',fecord,'0'+codemp,codcla,'01',fecord,'00001','S',NULL,NULL,NULL,porceiva,codivasri,'B'
+FROM tbl_detalle_ord_prod_fumulacion where 
+codemp=@as_codemp and numord=@as_numord
+)
+END;
+
+// lo inverso del calculo
+
+
+create PROCEDURE "dbo"."sp_calculo_inverso_porcentaje"
+( 
+	@as_codemp VARCHAR(5) ,
+	@as_numord VARCHAR(15) 
+)
+AS 
+BEGIN 
+
+update tbl_detalle_ord_prod_fumulacion
+set
+cantid_egr=cantid_resul/1000
+where codemp=@as_codemp and numord=@as_numord
+
+update tbl_detalle_ord_prod_fumulacion
+set
+costo_resul=cantid_egr * costo_unitario
+where codemp=@as_codemp and numord=@as_numord
+
+update tbl_detalle_ord_prod_fumulacion
+set
+porcentaje =cantid_resul/(tiempo_f * r_b)
+where codemp=@as_codemp and numord=@as_numord and
+medida_egreso='GR/LT'
+
+update tbl_detalle_ord_prod_fumulacion
+set
+porcentaje =cantid_resul/(tiempo_f * 10)
+where codemp=@as_codemp and numord=@as_numord and
+medida_egreso='GR'
+
+
+update tbl_detalle_ord_prod_fumulacion
+set
+porcentaje =cantid_resul/(tiempo_f * r_b)
+where codemp=@as_codemp and numord=@as_numord and
+medida_egreso='LT'
+
+update tbl_detalle_ord_prod_fumulacion
+set
+porcentaje =cantid_resul/(tiempo_f)
+where codemp=@as_codemp and numord=@as_numord and
+medida_egreso='PREN'
+
+END;
+
+
+
+CREATE PROCEDURE "dbo"."sp_actualiza_existencias_al_eliminar_orden"
+( 
+	@as_codemp VARCHAR(5) ,
+	@as_numord VARCHAR(15) 
+)
+AS 
+BEGIN 
+update articulos
+set exiact=exiact + tablaagregada.campoagregado
+from  articulos t1,
+(select codart,sum(cantid_egr) as campoagregado from tbl_detalle_ord_prod_fumulacion
+where codemp=@as_codemp and numord=@as_numord
+group by codart
+)tablaagregada
+where t1.codart=tablaagregada.codart and
+      t1.codemp=@as_codemp
+
+END;
+
+
+create PROCEDURE "dbo"."sp_actualiza_existencias_al_llenar_totales_orden"
+( 
+	@as_codemp VARCHAR(5) ,
+	@as_numord VARCHAR(15) 
+)
+AS 
+BEGIN 
+update articulos
+set exiact=exiact + tablaagregada.campoagregado
+from  articulos t1,
+(select codart,sum(cantid_egr) as campoagregado from tbl_detalle_ord_prod_fumulacion
+where codemp=@as_codemp and numord=@as_numord
+group by codart
+)tablaagregada
+where t1.codart=tablaagregada.codart and
+      t1.codemp=@as_codemp
+
+END;
+
+create PROCEDURE "dbo"."sp_mantenimiento_actualizar_tbl_orden_produccion_editar_totales"
+( 
+	@as_codemp VARCHAR(5) ,
+	@as_numord VARCHAR(10),
+	@as_fecord date ,
+	@as_codproceso VARCHAR(18) ,
+	@as_descripcion VARCHAR(50),
+	@as_cantid_kilos DECIMAL(15,4) ,
+	@as_maquina VARCHAR(10),
+	@as_comentario VARCHAR(100),
+	@as_codcli VARCHAR(10) ,
+	@as_nomcli VARCHAR(100),
+	@as_rucced VARCHAR(15) ,
+	@as_numprendas DECIMAL(15,4) ,
+	@as_numingreso VARCHAR(25) ,
+	@as_descargado VARCHAR(2),
+	@as_totiva DECIMAL(15,4),
+	@as_excen DECIMAL(15,4),
+	@as_totfac DECIMAL(15,4),
+	@as_numtandas INTEGER ,
+	@as_reproceso VARCHAR(1) ,
+	@as_codtemp VARCHAR(15) 
+)
+AS 
+BEGIN 
+
+update  tbl_ord_prod_formulacion set
+	
+	fecord=@as_fecord,
+	cantid_kilos=@as_cantid_kilos,
+	maquina=@as_maquina,
+	comentario=@as_comentario,
+	codcli=@as_codcli,
+	nomcli=@as_nomcli,
+	rucced=@as_rucced,
+	numprendas=@as_numprendas,
+	numingreso=@as_numingreso,
+	descargado=@as_descargado,
+	totiva=@as_totiva,
+	excen=@as_excen,
+	totfac=@as_totfac,
+	numtandas=@as_numtandas ,
+	reproceso=@as_reproceso, 
+    basea=0   
+where codemp=@as_codemp and numord=@as_numord
+
+
+delete from kardex
+where codemp=@as_codemp and numdoc=@as_numord and tiporg='EGR'
+
+delete from renglonesegresos
+where codemp=@as_codemp and numfac=@as_numord
+
+delete from encabezadoegresos
+where codemp=@as_codemp and numfac=@as_numord 
+
+
+
+delete from tbl_detalle_ord_prod_fumulacion where codemp=@as_codemp and numord=@as_numord
+
+//en el campo tiempo_f estoy poniendo @as_cantid_kilos para hacer el calculo desde el procedimiento
+
+insert into tbl_detalle_ord_prod_fumulacion 
+(
+   SELECT 
+    codproceso ,codprocesamiento ,codart ,codorden ,r_b ,cantid_agua ,temperatura_p,tiempo_p,porcentaje,@as_numprendas,@as_cantid_kilos,
+	descripcion_proceso,descripcion_procesamiento,descripcion_articulo,medida_egreso,
+	codemp,@as_numord,0,0,@as_fecord,cantid_enjuague,0,number(*),0,'',@as_codcli,'','',orden_proced,0,''
+    from tbl_temp_formulas_proceso 
+	where codtemp=@as_codtemp and codemp=@as_codemp
+	order by codorden asc
+)
+
+delete from tbl_temp_formulas_proceso where codtemp=@as_codtemp and codemp=@as_codemp
+end;
+
+
+
+
+
+create PROCEDURE "dbo"."sp_asignar_articulo_procedimiento"
+( 
+		
+@as_codart VARCHAR(60),
+@as_nomart VARCHAR(100),
+@as_codprocedimiento VARCHAR(15) ,
+@as_nomrbre_procedimiento VARCHAR(100),
+@as_codemp VARCHAR(5),
+@as_iden varchar(10)
+)
+AS 
+BEGIN 
+if @as_iden='I'
+insert tbl_asigna_articulos_procedimientos values
+(   @as_codemp,
+	@as_codart,
+    @as_codprocedimiento,
+    @as_nomrbre_procedimiento,
+	@as_nomart,
+	@as_codart+@as_codprocedimiento
+
+)
+
+if @as_iden='E'
+delete from  tbl_asigna_articulos_procedimientos
+where codemp=@as_codemp and codcodartcodprocedimiento=(@as_codart + @as_codprocedimiento)
+end;
+
+CREATE PROCEDURE "dbo"."sp_borra_tbo_totales_articulo_procedimiento"
+( 
+	@as_codemp VARCHAR(5) 
+)
+as
+begin
+delete from tbo_totales_articulo_procedimiento where codemp=@as_codemp
+end;
+
+
+
+CREATE  PROCEDURE "dbo"."sp_tbo_totales_articulo_procedimiento"
+( 
+	@as_codemp VARCHAR(5) ,
+	@as_codigo VARCHAR(50) ,
+	@as_fecdesde date ,
+	@as_fechasta date 
+)
+as
+begin
+insert into tbo_totales_articulo_procedimiento
+(
+select det.codemp,(det.codart+det.codprocesamiento),det.numord,
+avg(det.temperatura_f) ,avg(det.tiempo_f),sum(det.cantid_egr) 
+from tbl_asigna_articulos_procedimientos asig,tbl_detalle_ord_prod_fumulacion det, tbl_ord_prod_formulacion enc
+where asig.codemp=det.codemp and 
+asig.codcodartcodprocedimiento=(det.codart+det.codprocesamiento) AND 
+det.codemp=enc.codemp AND 
+det.numord=enc.numord and
+(enc.fecord>=@as_fecdesde and enc.fecord<=@as_fechasta) and
+enc.codemp=@as_codemp and
+(det.codart+det.codprocesamiento)=@as_codigo
+group by det.codemp,(det.codart+det.codprocesamiento),det.numord
+)
+end;

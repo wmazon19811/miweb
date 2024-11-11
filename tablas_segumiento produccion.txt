@@ -1,0 +1,462 @@
+
+CREATE TABLE "dbo"."tbl_secciones" (
+	"codemp" VARCHAR(5) NOT NULL,
+	"codsec" VARCHAR(5) NOT NULL,
+	"nomsec" VARCHAR(65) NULL,
+	"codcla" VARCHAR(10) NULL,
+	PRIMARY KEY ( "codemp" ASC, "codsec" ASC )
+) IN "system";
+
+
+
+
+CREATE TABLE "dbo"."tbl_secciones_produccion" (
+	"codemp" VARCHAR(5) NOT NULL,
+	"codsec" VARCHAR(5) NOT NULL,
+	"numfac" VARCHAR(20) NOT NULL,
+	"nomsec" VARCHAR(65) NULL,
+	"totalprendas" DECIMAL(15,4) NULL,
+	"codcla" VARCHAR(10) NULL,
+	PRIMARY KEY ( "codemp" ASC, "codsec" ASC, "numfac" ASC )
+) IN "system";
+
+
+CREATE TABLE "dbo"."tbl_proveedor_inicial" (
+	"codemp" VARCHAR(5) NOT NULL,
+	"codpro" VARCHAR(10) NOT NULL,
+	PRIMARY KEY ( "codemp" ASC )
+) IN "system";
+
+
+
+
+
+CREATE TABLE "dbo"."tbl_responsable_produccion" (
+	"codemp" VARCHAR(5) NOT NULL,
+	"codpro" VARCHAR(10) NOT NULL,
+	"nompro" VARCHAR(65) NULL,
+	"codsec" VARCHAR(13) NOT NULL,
+	"numfac" VARCHAR(11) NOT NULL,
+	"precibidas" DECIMAL(15,4) NULL,
+	"pentregadas" DECIMAL(15,4) NULL,
+	PRIMARY KEY ( "codemp" ASC, "codpro" ASC, "codsec" ASC, "numfac" ASC )
+) IN "system";
+
+
+CREATE TABLE "dbo"."tbl_kardexproduccion" (
+	"codemp" VARCHAR(5) NOT NULL,
+	"numkardex" VARCHAR(10) NOT NULL,
+	"numfac" VARCHAR(28) NOT NULL,
+	"tiporg" VARCHAR(5) NOT NULL,
+	"feckardex" "datetime" NULL,
+	"codpro" VARCHAR(10) NOT NULL,
+	"nompro" VARCHAR(63) NULL,
+	"cantid" DECIMAL(15,4) NULL,
+	"actmovimiento" VARCHAR(5) NULL,
+	"comentario" VARCHAR(150) NULL,
+	"nomart" VARCHAR(66) NULL,
+	"coddestino" VARCHAR(22) NULL,
+	"nomdestino" VARCHAR(100) NULL,
+	PRIMARY KEY ( "codemp" ASC, "numkardex" ASC, "numfac" ASC, "tiporg" ASC, "codpro" ASC )
+) IN "system";
+
+CREATE TABLE "dbo"."articulos_r" (
+	"codemp" VARCHAR(5) NOT NULL,
+	"codart" VARCHAR(12) NOT NULL,
+	"nomart" VARCHAR(43) NULL,
+	"exiact" DECIMAL(15,4) NULL,
+	"codpro" VARCHAR(12) NULL,
+	"numfac" VARCHAR(15) NULL,
+	"numren" INTEGER NULL,
+	"estado" VARCHAR(5) NULL,
+	"codartorg" VARCHAR(15) NULL,
+	"numord" VARCHAR(15) NULL,
+	PRIMARY KEY ( "codemp" ASC, "codart" ASC )
+) IN "system";
+
+CREATE TABLE "dbo"."tbl_movimientos_pago_prov" (
+	"codemp" VARCHAR(10) NOT NULL,
+	"numpago" VARCHAR(11) NOT NULL,
+	"numfac" VARCHAR(11) NULL,
+	"codprov" VARCHAR(11) NULL,
+	"codsec" VARCHAR(11) NULL,
+	"fecpago" "datetime" NULL,
+	"numfacprov" VARCHAR(15) NULL,
+	"valor" DECIMAL(15,4) NULL,
+	"comentario" VARCHAR(300) NULL,
+	"numprendas" DECIMAL(15,4) NULL,
+	"precio" DECIMAL(15,4) NULL,
+	"cantid01" DECIMAL(15,4) NULL,
+	"cantid02" DECIMAL(15,4) NULL,
+	"cantid03" DECIMAL(15,4) NULL,
+	"prec01" DECIMAL(15,4) NULL,
+	"prec02" DECIMAL(15,4) NULL,
+	"prec03" DECIMAL(15,4) NULL,
+	"tot01" DECIMAL(15,4) NULL,
+	"tot02" DECIMAL(15,4) NULL,
+	"tot03" DECIMAL(15,4) NULL,
+	"total" DECIMAL(15,4) NULL,
+	"comen01" VARCHAR(300) NULL,
+	"comen02" VARCHAR(300) NULL,
+	"comen03" VARCHAR(300) NULL,
+	"fpago" VARCHAR(50) NULL,
+	PRIMARY KEY ( "codemp" ASC, "numpago" ASC )
+) IN "system";
+
+
+//  'ESCO','ENCARGADO SECCION CORTE'
+// 'ENBOPT','ENCARGADO  DE BODEGA PT'
+// 'ENPOB','ENCARGADO  PRENDAS OBSERVACION'
+// 'PROP','ENCARGADO  PRODUCCION EN PROCESO'
+
+
+CREATE TABLE "dbo"."tbl_usuarios_prod" (
+	"codemp" VARCHAR(6) NOT NULL,
+	"codusu" VARCHAR(35) NOT NULL,
+	PRIMARY KEY ( "codemp" ASC, "codusu" ASC )
+) IN "system";
+
+
+
+
+
+// ----------------REPORTES -----------------------------------
+create PROCEDURE "dbo"."sp_prendas_x_entregar_produccion"
+( 
+@as_codemp varchar(2),
+@as_fecdesde varchar(10),
+@as_fechasta varchar (10),
+@as_nombrecomercial varchar(100),
+@as_nombrereporte varchar(200),
+@as_tipo varchar(3),
+@as_numfac varchar(10)
+)
+as
+BEGIN 
+
+if @as_tipo='I'
+select enc.numfac,enc.codart,enc.nomart,enc.cantid,enc.fecemi,sec.codsec,sec.nomsec,sec.totalprendas,
+res.codpro,res.nompro,res.precibidas from encabezadoproduccion enc, 
+tbl_secciones_produccion sec, tbl_responsable_produccion res
+where enc.codemp=sec.codemp AND 
+enc.numfac=sec.numfac and
+sec.codemp=res.codemp and
+sec.codsec=res.codsec and
+sec.numfac=res.numfac 
+and res.precibidas>0 and res.codemp=@as_codemp and (sec.codsec not in('09','10'))
+and enc.numfac=@as_numfac
+
+if @as_tipo='T'
+select enc.numfac,enc.codart,enc.nomart,enc.cantid,enc.fecemi,sec.codsec,sec.nomsec,sec.totalprendas,
+res.codpro,res.nompro,res.precibidas from encabezadoproduccion enc, 
+tbl_secciones_produccion sec, tbl_responsable_produccion res
+where enc.codemp=sec.codemp AND 
+enc.numfac=sec.numfac and
+sec.codemp=res.codemp and
+sec.codsec=res.codsec and
+sec.numfac=res.numfac 
+and res.precibidas>0 and res.codemp=@as_codemp and (sec.codsec not in('09','10'))
+and
+(enc.fecemi>=convert(date,@as_fecdesde,103) and enc.fecemi<=convert(date,@as_fechasta,103))
+
+end;
+
+
+
+create PROCEDURE "dbo"."sp_prendas_x_entregar_produccion_articulo"
+( 
+@as_codemp varchar(2),
+@as_fecdesde varchar(10),
+@as_fechasta varchar (10),
+@as_nombrecomercial varchar(100),
+@as_nombrereporte varchar(200),
+@as_tipo varchar(3),
+@as_codart varchar(10)
+)
+as
+BEGIN 
+
+if @as_tipo='I'
+select enc.numfac,enc.codart,enc.nomart,enc.cantid,enc.fecemi,sec.codsec,sec.nomsec,sec.totalprendas,
+res.codpro,res.nompro,res.precibidas from encabezadoproduccion enc, 
+tbl_secciones_produccion sec, tbl_responsable_produccion res
+where enc.codemp=sec.codemp AND 
+enc.numfac=sec.numfac and
+sec.codemp=res.codemp and
+sec.codsec=res.codsec and
+sec.numfac=res.numfac 
+and res.precibidas>0 and res.codemp=@as_codemp and (sec.codsec not in('09','10'))
+and enc.codart=@as_codart and
+(enc.fecemi>=convert(date,@as_fecdesde,103) and enc.fecemi<=convert(date,@as_fechasta,103))
+
+if @as_tipo='T'
+select enc.numfac,enc.codart,enc.nomart,enc.cantid,enc.fecemi,sec.codsec,sec.nomsec,sec.totalprendas,
+res.codpro,res.nompro,res.precibidas from encabezadoproduccion enc, 
+tbl_secciones_produccion sec, tbl_responsable_produccion res
+where enc.codemp=sec.codemp AND 
+enc.numfac=sec.numfac and
+sec.codemp=res.codemp and
+sec.codsec=res.codsec and
+sec.numfac=res.numfac 
+and res.precibidas>0 and res.codemp=@as_codemp and (sec.codsec not in('09','10'))
+and
+(enc.fecemi>=convert(date,@as_fecdesde,103) and enc.fecemi<=convert(date,@as_fechasta,103))
+
+end;
+
+create PROCEDURE "dbo"."sp_prendas_x_entregar_produccion_proveedores"
+( 
+@as_codemp varchar(2),
+@as_fecdesde varchar(10),
+@as_fechasta varchar (10),
+@as_nombrecomercial varchar(100),
+@as_nombrereporte varchar(200),
+@as_tipo varchar(3),
+@as_codpro varchar(10)
+)
+as
+BEGIN 
+
+if @as_tipo='I'
+select enc.numfac,enc.codart,enc.nomart,enc.cantid,enc.fecemi,sec.codsec,sec.nomsec,sec.totalprendas,
+res.codpro,res.nompro,res.precibidas from encabezadoproduccion enc, 
+tbl_secciones_produccion sec, tbl_responsable_produccion res
+where enc.codemp=sec.codemp AND 
+enc.numfac=sec.numfac and
+sec.codemp=res.codemp and
+sec.codsec=res.codsec and
+sec.numfac=res.numfac 
+and res.precibidas>0 and res.codemp=@as_codemp and (sec.codsec not in('09','10'))
+and res.codpro=@as_codpro and
+(enc.fecemi>=convert(date,@as_fecdesde,103) and enc.fecemi<=convert(date,@as_fechasta,103))
+
+if @as_tipo='T'
+select enc.numfac,enc.codart,enc.nomart,enc.cantid,enc.fecemi,sec.codsec,sec.nomsec,sec.totalprendas,
+res.codpro,res.nompro,res.precibidas from encabezadoproduccion enc, 
+tbl_secciones_produccion sec, tbl_responsable_produccion res
+where enc.codemp=sec.codemp AND 
+enc.numfac=sec.numfac and
+sec.codemp=res.codemp and
+sec.codsec=res.codsec and
+sec.numfac=res.numfac 
+and res.precibidas>0 and res.codemp=@as_codemp and (sec.codsec not in('09','10'))
+and
+(enc.fecemi>=convert(date,@as_fecdesde,103) and enc.fecemi<=convert(date,@as_fechasta,103))
+
+end;
+
+
+
+create PROCEDURE "dbo"."sp_prendas_produccion_secciones"
+( 
+@as_codemp varchar(2),
+@as_fecdesde varchar(10),
+@as_fechasta varchar (10),
+@as_nombrecomercial varchar(100),
+@as_nombrereporte varchar(200)
+)
+as
+BEGIN 
+
+select sec.codsec,sec.nomsec,sum(res.precibidas) from 
+encabezadoproduccion enc,
+tbl_secciones_produccion sec, tbl_responsable_produccion res
+where 
+enc.codemp=sec.codemp AND 
+enc.numfac=sec.numfac and
+sec.codemp=res.codemp and
+sec.codsec=res.codsec and
+sec.numfac=res.numfac 
+and res.precibidas>0 and res.codemp=@as_codemp
+and
+(enc.fecemi>=convert(date,@as_fecdesde,103) and enc.fecemi<=convert(date,@as_fechasta,103))
+group by sec.codsec,sec.nomsec order by sec.codsec asc
+
+end;
+
+
+
+create PROCEDURE "dbo"."sp_movimiento_x_proveedor"
+( 
+@as_codemp varchar(2),
+@as_numfac varchar(15),
+@as_codpro varchar (15),
+@as_nombrecomercial varchar(100),
+@as_nombrereporte varchar(200)
+)
+as
+BEGIN 
+select numfac,tiporg,feckardex,codpro,nompro,cantid,actmovimiento,comentario,nomart
+coddestino,if (tiporg='EN') then 'Recibe de <<<<--------  ' + nomdestino ELSE 'Transfiere a ----->>>>   ' + nomdestino end if as TRANSFERECIA 
+from tbl_kardexproduccion WHERE
+codemp=@as_codemp and numfac=@as_numfac and codpro=@as_codpro order by feckardex asc
+END;
+
+
+create PROCEDURE "dbo"."sp_resumen_existencias_tela"
+( 
+@as_codemp varchar(2),
+@as_nombrecomercial varchar(100),
+@as_nombrereporte varchar(200)
+)
+as
+BEGIN 
+select art.codart,art.nomart,art.exiact,art1.codart as codigo,art1.nomart as nombre,art1.exiact as existencia from articulos art,  articulos_r art1
+where art.codemp=art1.codemp and art.codart=art1.codartorg
+and art.codemp=@as_codemp and art1.estado='A'
+
+END;
+
+
+CREATE PROCEDURE "dbo"."sp_pago_proveedores_agr_prov"
+( 
+@as_codemp varchar(2),
+@as_fecdesde varchar(10),
+@as_fechasta varchar (10),
+@as_tipo varchar(3),
+@as_codpro varchar(10),
+@as_nombrecomercial varchar(100),
+@as_nombrereporte varchar(200)
+)
+as
+BEGIN
+if @as_tipo='I' 
+select res.codpro,res.nompro,enc.numfac,enc.fecemi,enc.nomart,res.pentregadas as valorpagado 
+from tbl_responsable_produccion res ,encabezadoproduccion enc
+where 
+res.codemp=enc.codemp and res.numfac=enc.numfac and res.codsec not in('10','09','03') and 
+res.codpro=@as_codpro and enc.codemp=@as_codemp and
+(enc.fecemi>=convert(date,@as_fecdesde,103) and enc.fecemi<=convert(date,@as_fechasta,103))
+order by enc.fecemi asc
+
+if @as_tipo='T' 
+select res.codpro,res.nompro,enc.numfac,enc.fecemi,enc.nomart,res.pentregadas as valorpagado 
+from tbl_responsable_produccion res ,encabezadoproduccion enc
+where 
+res.codemp=enc.codemp and res.numfac=enc.numfac and res.codsec not in('10','09','03') and 
+enc.codemp=@as_codemp and
+(enc.fecemi>=convert(date,@as_fecdesde,103) and enc.fecemi<=convert(date,@as_fechasta,103))
+order by enc.fecemi asc
+
+END;
+
+create PROCEDURE "dbo"."sp_orden_egreso_tela"
+( 
+@as_codemp varchar(2),
+@as_numord varchar(10),
+@as_nombrecomercial varchar(100),
+@as_nombrereporte varchar(200)
+)
+as
+BEGIN
+SELECT codartorg,codart,exiact,nomart FROM ARTICULOS_r 
+where codemp=@as_codemp and numord=@as_numord 
+order by nomart asc
+
+end;
+
+
+create  PROCEDURE "dbo"."sp_pago_proveedores_agr_orden"
+( 
+@as_codemp varchar(2),
+@as_fecdesde varchar(10),
+@as_fechasta varchar (10),
+@as_tipo varchar(3),
+@as_codpro varchar(10),
+@as_nombrecomercial varchar(100),
+@as_nombrereporte varchar(200)
+)
+as
+BEGIN
+if @as_tipo='I' 
+select prov.codpro,prov.nompro,enc.numfac,enc.fecemi,enc.nomart,res.fecpago,res.numfacprov,res.valor,res.comentario, res.numprendas
+from encabezadoproduccion enc,  tbl_movimientos_pago_prov res, proveedores prov
+where 
+enc.codemp=res.codemp and
+enc.numfac=res.numfac and
+res.codemp=prov.codemp and
+res.codprov=prov.codpro 
+and res.codsec not in('10','09','03') and 
+prov.codpro=@as_codpro and enc.codemp=@as_codemp and
+(enc.fecemi>=convert(date,@as_fecdesde,103) and enc.fecemi<=convert(date,@as_fechasta,103))
+order by prov.codpro asc, enc.fecemi asc
+
+if @as_tipo='T' 
+select prov.codpro,prov.nompro,enc.numfac,enc.fecemi,enc.nomart,res.fecpago,res.numfacprov,res.valor,res.comentario, res.numprendas
+from encabezadoproduccion enc,  tbl_movimientos_pago_prov res, proveedores prov
+where 
+enc.codemp=res.codemp and
+enc.numfac=res.numfac and
+res.codemp=prov.codemp and
+res.codprov=prov.codpro 
+and res.codsec not in('10','09','03') and 
+enc.codemp=@as_codemp and
+(enc.fecemi>=convert(date,@as_fecdesde,103) and enc.fecemi<=convert(date,@as_fechasta,103))
+order by prov.codpro asc, enc.fecemi asc
+END;
+
+
+create  PROCEDURE "dbo"."sp_pago_proveedores_fecha_pago"
+( 
+@as_codemp varchar(2),
+@as_fecdesde varchar(10),
+@as_fechasta varchar (10),
+@as_nombrecomercial varchar(100),
+@as_nombrereporte varchar(200)
+)
+as
+BEGIN
+select prov.codpro,prov.nompro,enc.numfac,enc.nomart,res.numpago,res.fecpago,res.numfacprov,res.valor, res.numprendas
+from encabezadoproduccion enc,  tbl_movimientos_pago_prov res, proveedores prov
+where 
+enc.codemp=res.codemp and
+enc.numfac=res.numfac and
+res.codemp=prov.codemp and
+res.codprov=prov.codpro 
+and res.codsec not in('10','09','03') and 
+enc.codemp=@as_codemp and
+(res.fecpago>=convert(date,@as_fecdesde,103) and res.fecpago<=convert(date,@as_fechasta,103))
+order by res.fecpago asc,prov.nompro asc 
+end;
+
+
+
+create PROCEDURE "dbo"."sp_pago_proveedor_x_orden"
+( 
+@as_codemp varchar(2),
+@as_numfac varchar(15),
+@as_codusu varchar (100),
+@as_codpro varchar (15),
+@as_nompro varchar (100),
+@as_nombrecomercial varchar(100),
+@as_nombrereporte varchar(200),
+@as_numpago varchar(10),
+@as_tipo varchar(10)
+)
+as
+begin
+if @as_tipo='T'
+select enc.nomart,enc.fecemi,mov.codprov,mov.numpago,mov.numfac,
+mov.fecpago,mov.numfacprov,mov.valor,mov.comentario,mov.numprendas,
+mov.precio,mov.cantid01,mov.cantid02,mov.cantid03,mov.prec01,mov.prec02,mov.prec03,
+mov.tot01,mov.tot02,mov.tot03,mov.total,mov.comen01,mov.comen02,mov.comen03,fpago,
+(mov.comentario + '------>'+ mov.comen01+'-------->' + mov.comen02 +'----->'+ mov.comen03) as nota,(mov.tot01+mov.tot02+mov.tot03) as totdescuento
+ from encabezadoproduccion enc, tbl_movimientos_pago_prov mov
+where enc.codemp=mov.codemp and enc.numfac=mov.numfac and
+enc.codemp=@as_codemp and enc.numfac=@as_numfac and mov.codprov=@as_codpro order by mov.fecpago asc
+
+if @as_tipo='I'
+select enc.nomart,enc.fecemi,mov.codprov,mov.numpago,mov.numfac,
+mov.fecpago,mov.numfacprov,mov.valor,mov.comentario,mov.numprendas,
+mov.precio,mov.cantid01,mov.cantid02,mov.cantid03,mov.prec01,mov.prec02,mov.prec03,
+mov.tot01,mov.tot02,mov.tot03,mov.total,mov.comen01,mov.comen02,mov.comen03,fpago,
+(mov.comentario + '------>'+ mov.comen01+'-------->' + mov.comen02 +'----->'+ mov.comen03) as nota,(mov.tot01+mov.tot02+mov.tot03) as totdescuento
+ from encabezadoproduccion enc, tbl_movimientos_pago_prov mov
+where enc.codemp=mov.codemp and enc.numfac=mov.numfac and
+enc.codemp=@as_codemp and mov.numpago=@as_numpago order by mov.fecpago asc
+
+
+end;
+
+
+
